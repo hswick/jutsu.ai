@@ -1,0 +1,90 @@
+(ns jutsu.ai.core           
+  (:import [org.datavec.api.split FileSplit]
+           [org.datavec.api.util ClassPathResource]
+           [org.deeplearning4j.datasets.datavec RecordReaderDataSetIterator]
+           [org.datavec.api.records.reader.impl.csv CSVRecordReader]
+           [org.deeplearning4j.nn.conf NeuralNetConfiguration$Builder]
+           [org.deeplearning4j.nn.api OptimizationAlgorithm]
+           [org.deeplearning4j.nn.weights WeightInit]
+           [org.deeplearning4j.nn.conf Updater]
+           [org.deeplearning4j.nn.conf.layers DenseLayer$Builder]
+           [org.nd4j.linalg.activations Activation]
+           [org.deeplearning4j.nn.conf.layers OutputLayer$Builder]
+           [org.nd4j.linalg.lossfunctions LossFunctions$LossFunction]
+           [org.deeplearning4j.optimize.listeners ScoreIterationListener]
+           [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
+           [org.deeplearning4j.util ModelSerializer]))
+
+(def path (-> (ClassPathResource. "coinbaseBTCProcessed2.csv")
+              (.getFile)))
+
+(def rr (CSVRecordReader.))
+(.initialize rr (FileSplit. path))
+
+(defn get-dataset-iterator []
+  (RecordReaderDataSetIterator. rr nil 150 1 1 true))
+
+(defn gen-options-map []
+  {:seed 12345
+   :iterations 1
+   :optimization-algo (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :learning-rate 0.01
+   :weight-init (WeightInit/XAVIER)
+   :updater (Updater/NESTEROVS)
+   :momentum 0.9
+   :activation (Activation/TANH)
+   :pretrain false
+   :backprop true
+   :num-hidden-nodes 50
+   :loss-function (LossFunctions$LossFunction/MSE)})
+
+(def regression-net [num-in num-out options-map]
+  (let [final-map (merge (gen-options-map) options-map)]
+    (-> (NeuralNetConfiguration$Builder.)
+      (.seed (:seed final-map))
+      (.iterations (:iterations final-map))
+      (.optimizationAlgo (:optimization-algo final-map))
+      (.learningRate (:learning-rate final-map))
+      (.weightInit (:weight-init final-map))
+      (.updater (:updater final-map))
+      (.momentum (:momentum final-map))
+      (.list)
+      (.layer 0 (-> (DenseLayer$Builder.)
+                    (.nIn num-in)
+                    (.nOut (:num-hidden-nodes final-map))
+                    (.activation (:activation final-map))
+                    (.build)))
+      (.layer 1 (-> (DenseLayer$Builder.)
+                    (.nIn (:num-hidden-nodes final-map))
+                    (.nOut (:num-hidden-nodes final-map))
+                    (.activation (:activation final-map))
+                    (.build)))
+      (.layer 2 (-> (OutputLayer$Builder. (:loss-function final-map))
+                    (.activation (Activation/IDENTITY))
+                    (.nIn (:num-hidden-nodes final-map))
+                    (.nOut num-out)
+                    (.build)))
+      (.pretrain (:pretrain false))
+      (.backprop (:backprop true))
+      (.build)
+      (MultiLayerNetwork.))))
+
+;;set true for online learning
+(defn save-model 
+  ([net filename]
+   (save-model net filename false))
+  ([net filename ready-for-more]
+   (ModelSerializer/writeModel net (java.io.File. filename) ready-for-more)))
+
+(defn load-model [filename]
+   (ModelSerializer/restoreMultiLayerNetwork filename))
+
+(def n-epochs 100)
+(defn train-net []
+  (def dataset-iterator (get-dataset-iterator))
+  (.init net)
+  (.setListeners net (list (ScoreIterationListener. 1)))
+  (doseq [n (range 0 n-epochs)]
+    (.reset dataset-iterator)
+    (.fit net dataset-iterator))
+  (save-model net))
