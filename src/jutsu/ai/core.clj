@@ -15,16 +15,14 @@
            [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
            [org.deeplearning4j.util ModelSerializer]))
 
-(def path (-> (ClassPathResource. "coinbaseBTCProcessed2.csv")
-              (.getFile)))
+(defn regression-csv-iterator [filename batch-size label-index]
+  (let [path (-> (ClassPathResource. filename)
+              (.getFile))
+        rr (CSVRecordReader.)]
+    (.initialize rr (FileSplit. path))
+    (RecordReaderDataSetIterator. rr nil batch-size label-index 1 true)))
 
-(def rr (CSVRecordReader.))
-(.initialize rr (FileSplit. path))
-
-(defn get-dataset-iterator []
-  (RecordReaderDataSetIterator. rr nil 150 1 1 true))
-
-(defn gen-options-map []
+(defn default-regression-options []
   {:seed 12345
    :iterations 1
    :optimization-algo (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
@@ -38,8 +36,10 @@
    :num-hidden-nodes 50
    :loss-function (LossFunctions$LossFunction/MSE)})
 
-(def regression-net [num-in num-out options-map]
-  (let [final-map (merge (gen-options-map) options-map)]
+(def regression-net
+  ([num-in num-out] (regression-net num-in num-out {}))
+  ([num-in num-out options-map]
+   (let [final-map (merge (default-regression-options) options-map)]
     (-> (NeuralNetConfiguration$Builder.)
       (.seed (:seed final-map))
       (.iterations (:iterations final-map))
@@ -67,7 +67,53 @@
       (.pretrain (:pretrain false))
       (.backprop (:backprop true))
       (.build)
-      (MultiLayerNetwork.))))
+      (MultiLayerNetwork.)))))
+
+(defn default-classification-options []
+  {:seed 12345
+   :optimization-algo (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :iterations 1
+   :learning-rate 0.006
+   :updater (Updater/NESTEROVS)
+   :momentum 0.9
+   :regularization true
+   :l2 1e-4
+   :weight-init (WeightInit/XAVIER)
+   :activation (Activation/RELU)
+   :loss-function (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
+   :pretrain false
+   :backprop true})
+
+(defn classification-net
+  ([num-in num-out] (classification-net num-in num-out {}))
+  ([num-in num-out options-map]
+   (let [final-map (merge (default-options) options-map)]
+     (-> (NeuralNetConfiguration$Builder.)
+       (.seed (:seed final-map))
+       (.optimizationAlgo (:optimization-algo final-map))
+       (.iterations (:iterations final-map))
+       (.learningRate (:learning-rate final-map))
+       (.updater (:updater final-map))
+       (.momentum (:momentum final-map))
+       (.regularization (:regularization final-map))
+       (.l2 (:l2 final-map))
+       (.list)
+       (.layer 0 (-> (DenseLayer$Builder.)
+                     (.nIn num-in)
+                     (.nOut (:num-hidden-nodes final-map))
+                     (.activation (:activation final-map))
+                     (.weightInit (:weight-init final-map))
+                     (.build)))
+       (.layer 1 (-> (OutputLayer$Builder. (:loss-function final-map))
+                     (.nIn (:num-hidden-nodes final-map))
+                     (.nOut num-out)
+                     (.activation (Activation/SOFTMAX))
+                     (.weightInit (:weight-init final-map))
+                     (.build)))
+       (.pretrain (:pretrain final-map))
+       (.backprop (:backprop final-map))
+       (.build)
+       (MultiLayerNetwork.)))))
 
 ;;set true for online learning
 (defn save-model 
@@ -79,12 +125,15 @@
 (defn load-model [filename]
    (ModelSerializer/restoreMultiLayerNetwork filename))
 
-(def n-epochs 100)
-(defn train-net []
-  (def dataset-iterator (get-dataset-iterator))
-  (.init net)
-  (.setListeners net (list (ScoreIterationListener. 1)))
-  (doseq [n (range 0 n-epochs)]
+(def initialize-net!
+  ([net] (initialize-net net (list (ScoreIterationListener. 1))))
+  ([net listeners]
+   (.init net)
+   (.setListeners net listeners)
+   net))
+
+(defn train-net! [net epochs dataset-iterator]
+  (doseq [n (range 0 epochs)]
     (.reset dataset-iterator)
     (.fit net dataset-iterator))
-  (save-model net))
+  net)
