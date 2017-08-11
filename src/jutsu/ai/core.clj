@@ -36,7 +36,7 @@
    :num-hidden-nodes 50
    :loss-function (LossFunctions$LossFunction/MSE)})
 
-(def regression-net
+(defn regression-net
   ([num-in num-out] (regression-net num-in num-out {}))
   ([num-in num-out options-map]
    (let [final-map (merge (default-regression-options) options-map)]
@@ -87,7 +87,7 @@
 (defn classification-net
   ([num-in num-out] (classification-net num-in num-out {}))
   ([num-in num-out options-map]
-   (let [final-map (merge (default-options) options-map)]
+   (let [final-map (merge (default-classification-options) options-map)]
      (-> (NeuralNetConfiguration$Builder.)
        (.seed (:seed final-map))
        (.optimizationAlgo (:optimization-algo final-map))
@@ -125,8 +125,8 @@
 (defn load-model [filename]
    (ModelSerializer/restoreMultiLayerNetwork filename))
 
-(def initialize-net!
-  ([net] (initialize-net net (list (ScoreIterationListener. 1))))
+(defn initialize-net!
+  ([net] (initialize-net! net (list (ScoreIterationListener. 1))))
   ([net listeners]
    (.init net)
    (.setListeners net listeners)
@@ -137,3 +137,10 @@
     (.reset dataset-iterator)
     (.fit net dataset-iterator))
   net)
+
+(defn parse-shorthand [topology]
+  (map (fn [layer]
+         {:in (nth layer 0)
+          :out (nth layer 1)
+          :activation (nth layer 2)})
+    topology))
