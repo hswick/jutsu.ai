@@ -20,7 +20,7 @@
               (.getFile))
         rr (CSVRecordReader.)]
     (.initialize rr (FileSplit. path))
-    (RecordReaderDataSetIterator. rr nil batch-size label-index 1 true)))
+    (RecordReaderDataSetIterator. rr nil batch-size label-index -1 true)))
 
 (defn classification-csv-iterator [filename batch-size label-index num-possible-labels]
   (let [path (-> (ClassPathResource. filename)
@@ -37,10 +37,11 @@
    :weight-init (WeightInit/XAVIER)
    :updater (Updater/NESTEROVS)
    :momentum 0.9
-   :activation (Activation/TANH)
+   :activation (Activation/RELU)
    :pretrain false
    :backprop true
    :num-hidden-nodes 50
+   :output-activation (Activation/IDENTITY)
    :loss-function (LossFunctions$LossFunction/MSE)})
 
 (defn regression-net
@@ -67,7 +68,7 @@
                     (.activation (:activation final-map))
                     (.build)))
       (.layer 2 (-> (OutputLayer$Builder. (:loss-function final-map))
-                    (.activation (Activation/IDENTITY))
+                    (.activation (:output-activation final-map))
                     (.nIn (:num-hidden-nodes final-map))
                     (.nOut num-out)
                     (.build)))
@@ -88,6 +89,7 @@
    :weight-init (WeightInit/XAVIER)
    :activation (Activation/RELU)
    :loss-function (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
+   :output-activation (Activation/SOFTMAX)
    :pretrain false
    :backprop true})
 
@@ -114,7 +116,7 @@
        (.layer 1 (-> (OutputLayer$Builder. (:loss-function final-map))
                      (.nIn (:num-hidden-nodes final-map))
                      (.nOut num-out)
-                     (.activation (Activation/SOFTMAX))
+                     (.activation (:output-activation final-map))
                      (.weightInit (:weight-init final-map))
                      (.build)))
        (.pretrain (:pretrain final-map))
@@ -152,12 +154,53 @@
           :activation (nth layer 2)})
     topology))
 
+(def activation-options
+  {:relu (Activation/RELU)
+   :identity (Activation/IDENTITY)
+   :soft-max (Activation/SOFTMAX)
+   :tanh (Activation/TANH)})
+
 ;;throw error if now activation key
-(defn interpret-activation [layer])
+(defn interpret-layer [i layer topo-count options-map]
+    (fn [net]
+      (-> net
+        (.layer i (-> (if (= i topo-count)
+                          (OutputLayer$Builder. (:loss-function options-map))
+                          (DenseLayer$Builder.))
+                      (.nIn (:in layer))
+                      (.nOut (:out layer))
+                      (.activation (get activation-options (:activation (:layer))))
+                      (.build))))))
 
 ;;pass in shorthand with vectors
-(defn parse-topology [topology]
+;;Returns a vector of functions to be called on the net
+(defn parse-topology [topology options-map]
   (let [topo (if (= clojure.lang.PersistentVector (class (first topology)))
                (parse-shorthand topology)
                topology)
-        proper-topo (map interpret-activation topo)]))
+        topo-count (count topo)
+        proper-topo (map-indexed (fn [i layer]
+            (interpret-layer i layer (dec topo-count)) topo))]))
+
+(defn initialize-layers [net parsed-topology]
+  (doseq [layer-fn parsed-topology]
+    (layer-fn net))
+  net)
+
+(defn network [topology options-map]
+  (let [parsed-topology (parse-topology topology options-map)]
+    (-> (NeuralNetConfiguration$Builder.)
+      (.seed (:seed options-map))
+      (.iterations (:iterations options-map))
+      (.optimizationAlgo (:optimization-algo options-map))
+      (.learningRate (:learning-rate options-map))
+      (.weightInit (:weight-init options-map))
+      (.updater (:updater options-map))
+      (.momentum (:momentum options-map))
+      (.list)
+      (initialize-layers parsed-topology)
+      (.pretrain (:pretrain options-map))
+      (.backprop (:backprop options-map))
+      (.build)
+      (MultiLayerNetwork.))))
+
