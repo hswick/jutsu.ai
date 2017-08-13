@@ -22,6 +22,13 @@
     (.initialize rr (FileSplit. path))
     (RecordReaderDataSetIterator. rr nil batch-size label-index 1 true)))
 
+(defn classification-csv-iterator [filename batch-size label-index num-possible-labels]
+  (let [path (-> (ClassPathResource. filename)
+                 (.getFile))
+        rr (CSVRecordReader.)]
+    (.initialize rr (FileSplit. path))
+    (RecordReaderDataSetIterator. rr batch-size label-index num-possible-labels)))
+
 (defn default-regression-options []
   {:seed 12345
    :iterations 1
@@ -64,8 +71,8 @@
                     (.nIn (:num-hidden-nodes final-map))
                     (.nOut num-out)
                     (.build)))
-      (.pretrain (:pretrain false))
-      (.backprop (:backprop true))
+      (.pretrain (:pretrain final-map))
+      (.backprop (:backprop final-map))
       (.build)
       (MultiLayerNetwork.)))))
 
@@ -144,3 +151,13 @@
           :out (nth layer 1)
           :activation (nth layer 2)})
     topology))
+
+;;throw error if now activation key
+(defn interpret-activation [layer])
+
+;;pass in shorthand with vectors
+(defn parse-topology [topology]
+  (let [topo (if (= clojure.lang.PersistentVector (class (first topology)))
+               (parse-shorthand topology)
+               topology)
+        proper-topo (map interpret-activation topo)]))

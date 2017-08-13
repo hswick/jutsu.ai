@@ -1,5 +1,5 @@
 (set-env!
-  :resource-paths #{"src"}
+  :resource-paths #{"src" "data"}
   :dependencies '[[org.clojure/clojure "1.8.0"]
                   [nightlight "1.7.0" :scope "test"]
                   [adzerk/boot-test "1.2.0" :scope "test"]
@@ -16,7 +16,7 @@
   jar {:main 'jutsu.ai.core
        :manifest {"Description" "Clojure library meant to do..."}}
   pom {:version "0.0.1"
-       :project 'author/jutsu.ai
+       :project 'hswick/jutsu.ai
        :description "jutsu.ai is meant to do..."
        :url "https://github.com/author/jutsu.ai"}
   push {:repo "clojars"})
