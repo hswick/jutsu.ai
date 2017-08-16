@@ -15,34 +15,21 @@
 (deftest shorthand
   (is (= topology1 (ai/parse-shorthand topology2))))
 
-(defn train-regression-net []
-  (let [dataset-iterator (ai/regression-csv-iterator "data.csv" 150 1)]
-    (-> (ai/regression-net 1 1)
-        (ai/initialize-net!)
-        (ai/train-net! 100 dataset-iterator)
-        (ai/save-model "regnet.zip"))))
+(def layer-config-test [{:in 4 :out 4 :activation :relu}
+                        {:in 4 :out 4 :activation :relu}
+                        {:in 4 :out 10 :activation :softmax}])
 
-(train-regression-net)
+(def test-net (ai/network layer-config-test
+               (ai/default-classification-options)))
+
+(deftest init-classification-net
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-net))))
 
 (defn train-classification-net []
-  (let [dataset-iterator (ai/classification-csv-iterator "classification_data.csv" 4 4 10)]
-    (println dataset-iterator)
-    (-> (ai/classification-net 4 1)
-        (ai/initialize-net!)
-        (ai/train-net! 10 dataset-iterator)
-        (ai/save-model "classnet.zip"))))
-
-(train-classification-net)
-
-(def test-net (ai/network [{:in 4 :out 4 :activation :relu}
-                           {:in 4 :out 4 :activation :relu}
-                           {:in 4 :out 4 :activation :identity}]
-                          (ai/default-classification-options)))
-
-(defn new-train-classification-net []
   (let [dataset-iterator (ai/classification-csv-iterator "classification_data.csv" 4 4 10)]
     (-> test-net
         (ai/initialize-net!)
         (ai/train-net! 10 dataset-iterator)
         (ai/save-model "classnet.zip"))))
-        
+
+(train-classification-net)

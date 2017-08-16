@@ -44,39 +44,6 @@
    :output-activation (Activation/IDENTITY)
    :loss-function (LossFunctions$LossFunction/MSE)})
 
-(defn regression-net
-  ([num-in num-out] (regression-net num-in num-out {}))
-  ([num-in num-out options-map]
-   (let [final-map (merge (default-regression-options) options-map)]
-    (-> (NeuralNetConfiguration$Builder.)
-      (.seed (:seed final-map))
-      (.iterations (:iterations final-map))
-      (.optimizationAlgo (:optimization-algo final-map))
-      (.learningRate (:learning-rate final-map))
-      (.weightInit (:weight-init final-map))
-      (.updater (:updater final-map))
-      (.momentum (:momentum final-map))
-      (.list)
-      (.layer 0 (-> (DenseLayer$Builder.)
-                    (.nIn num-in)
-                    (.nOut (:num-hidden-nodes final-map))
-                    (.activation (:activation final-map))
-                    (.build)))
-      (.layer 1 (-> (DenseLayer$Builder.)
-                    (.nIn (:num-hidden-nodes final-map))
-                    (.nOut (:num-hidden-nodes final-map))
-                    (.activation (:activation final-map))
-                    (.build)))
-      (.layer 2 (-> (OutputLayer$Builder. (:loss-function final-map))
-                    (.activation (:output-activation final-map))
-                    (.nIn (:num-hidden-nodes final-map))
-                    (.nOut num-out)
-                    (.build)))
-      (.pretrain (:pretrain final-map))
-      (.backprop (:backprop final-map))
-      (.build)
-      (MultiLayerNetwork.)))))
-
 (defn default-classification-options []
   {:seed 12345
    :optimization-algo (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
@@ -92,37 +59,6 @@
    :output-activation (Activation/SOFTMAX)
    :pretrain false
    :backprop true})
-
-(defn classification-net
-  ([num-in num-out] (classification-net num-in num-out {}))
-  ([num-in num-out options-map]
-   (let [final-map (merge (default-classification-options) options-map)]
-     (-> (NeuralNetConfiguration$Builder.)
-       (.seed (:seed final-map))
-       (.optimizationAlgo (:optimization-algo final-map))
-       (.iterations (:iterations final-map))
-       (.learningRate (:learning-rate final-map))
-       (.updater (:updater final-map))
-       (.momentum (:momentum final-map))
-       (.regularization (:regularization final-map))
-       (.l2 (:l2 final-map))
-       (.list)
-       (.layer 0 (-> (DenseLayer$Builder.)
-                     (.nIn num-in)
-                     (.nOut (:num-hidden-nodes final-map))
-                     (.activation (:activation final-map))
-                     (.weightInit (:weight-init final-map))
-                     (.build)))
-       (.layer 1 (-> (OutputLayer$Builder. (:loss-function final-map))
-                     (.nIn (:num-hidden-nodes final-map))
-                     (.nOut num-out)
-                     (.activation (:output-activation final-map))
-                     (.weightInit (:weight-init final-map))
-                     (.build)))
-       (.pretrain (:pretrain final-map))
-       (.backprop (:backprop final-map))
-       (.build)
-       (MultiLayerNetwork.)))))
 
 ;;set true for online learning
 (defn save-model 
@@ -157,7 +93,7 @@
 (def activation-options
   {:relu (Activation/RELU)
    :identity (Activation/IDENTITY)
-   :soft-max (Activation/SOFTMAX)
+   :softmax (Activation/SOFTMAX)
    :tanh (Activation/TANH)})
 
 ;;throw error if now activation key
@@ -169,7 +105,7 @@
                           (DenseLayer$Builder.))
                       (.nIn (:in layer))
                       (.nOut (:out layer))
-                      (.activation (get activation-options (:activation (:layer))))
+                      (.activation (get activation-options (:activation layer)));should emit error when cant find function
                       (.build))))))
 
 ;;pass in shorthand with vectors
@@ -179,13 +115,12 @@
                (parse-shorthand topology)
                topology)
         topo-count (count topo)
-        proper-topo (map-indexed (fn [i layer]
-            (interpret-layer i layer (dec topo-count)) topo))]))
+        proper-topo (doall (map-indexed (fn [i layer]
+                                          (interpret-layer i layer (dec topo-count) options-map)) topo))]
+    proper-topo))
 
 (defn initialize-layers [net parsed-topology]
-  (doseq [layer-fn parsed-topology]
-    (layer-fn net))
-  net)
+  ((apply comp parsed-topology) net))
 
 (defn network [topology options-map]
   (let [parsed-topology (parse-topology topology options-map)]
@@ -203,4 +138,3 @@
       (.backprop (:backprop options-map))
       (.build)
       (MultiLayerNetwork.))))
-
