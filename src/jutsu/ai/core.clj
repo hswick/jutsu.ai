@@ -13,7 +13,8 @@
            [org.nd4j.linalg.lossfunctions LossFunctions$LossFunction]
            [org.deeplearning4j.optimize.listeners ScoreIterationListener]
            [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
-           [org.deeplearning4j.util ModelSerializer]))
+           [org.deeplearning4j.util ModelSerializer]
+           [org.deeplearning4j.nn.conf.layers RBM$Builder]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -29,24 +30,44 @@
     (.initialize rr (FileSplit. path))
     (RecordReaderDataSetIterator. rr batch-size label-index num-possible-labels)))
 
+(def activation-options
+  {:relu (Activation/RELU)
+   :identity (Activation/IDENTITY)
+   :softmax (Activation/SOFTMAX)
+   :tanh (Activation/TANH)
+   :sigmoid (Activation/SIGMOID)})
+
+(def layer-builders
+  {:default (fn [] (DenseLayer$Builder.))
+   :rbm (fn [] (RBM$Builder.))})
+
+(def loss-functions
+  {:mse (LossFunctions$LossFunction/MSE)
+   :negative-log-likelihood (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
+   :kl-divergence (LossFunctions$LossFunction/KL_DIVERGENCE)})
+
+(def optimization-algos
+  {:sgd (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :stochastic-gradient-descent (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :line-gradient-descent (OptimizationAlgorithm/LINE_GRADIENT_DESCENT)})
+
 (defn default-regression-options []
   {:seed 12345
    :iterations 1
-   :optimization-algo (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :optimization-algo :sgd
    :learning-rate 0.01
    :weight-init (WeightInit/XAVIER)
    :updater (Updater/NESTEROVS)
    :momentum 0.9
-   :activation (Activation/RELU)
    :pretrain false
    :backprop true
    :num-hidden-nodes 50
-   :output-activation (Activation/IDENTITY)
-   :loss-function (LossFunctions$LossFunction/MSE)})
+   :output-loss-function :mse
+   :layer-builder :default})
 
 (defn default-classification-options []
   {:seed 12345
-   :optimization-algo (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :optimization-algo :sgd
    :iterations 1
    :learning-rate 0.006
    :updater (Updater/NESTEROVS)
@@ -54,11 +75,10 @@
    :regularization true
    :l2 1e-4
    :weight-init (WeightInit/XAVIER)
-   :activation (Activation/RELU)
-   :loss-function (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
-   :output-activation (Activation/SOFTMAX)
+   :output-loss-function :negative-log-likelihood
    :pretrain false
-   :backprop true})
+   :backprop true
+   :layer-builder :default})
 
 ;;set true for online learning
 (defn save-model 
@@ -83,29 +103,33 @@
     (.fit net dataset-iterator))
   net)
 
+;;Should add an argument for loss function
 (defn parse-shorthand [topology]
   (map (fn [layer]
          {:in (nth layer 0)
           :out (nth layer 1)
-          :activation (nth layer 2)})
+          :activation (nth layer 2)
+          :loss (get layer 3)});;using get instead of nth makes it optional
     topology))
-
-(def activation-options
-  {:relu (Activation/RELU)
-   :identity (Activation/IDENTITY)
-   :softmax (Activation/SOFTMAX)
-   :tanh (Activation/TANH)})
 
 ;;throw error if now activation key
 (defn interpret-layer [i layer topo-count options-map]
     (fn [net]
       (-> net
         (.layer i (-> (if (= i topo-count)
-                          (OutputLayer$Builder. (:loss-function options-map))
-                          (DenseLayer$Builder.))
+                          (OutputLayer$Builder. (get loss-functions (:output-loss-function options-map)))
+                          ((get layer-builders (:layer-builder options-map))))
                       (.nIn (:in layer))
                       (.nOut (:out layer))
-                      (.activation (get activation-options (:activation layer)));should emit error when cant find function
+                      ((fn [layer-config]
+                         (when-let [loss-fn (:loss layer)]
+                           (.lossFunction layer-config (get loss-functions loss-fn)))
+                         layer-config))
+                      ((fn [layer-config]
+                         (when-let [activation (:activation layer)]
+                           (.activation layer-config 
+                             (get activation-options (:activation layer))))
+                         layer-config));should emit error when cant find function
                       (.build))))))
 
 ;;pass in shorthand with vectors
@@ -127,7 +151,7 @@
     (-> (NeuralNetConfiguration$Builder.)
       (.seed (:seed options-map))
       (.iterations (:iterations options-map))
-      (.optimizationAlgo (:optimization-algo options-map))
+      (.optimizationAlgo (get optimization-algos (:optimization-algo options-map)))
       (.learningRate (:learning-rate options-map))
       (.weightInit (:weight-init options-map))
       (.updater (:updater options-map))
