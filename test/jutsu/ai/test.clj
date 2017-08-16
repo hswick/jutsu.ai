@@ -5,19 +5,19 @@
 (def topology1
   [{:in 1 :out 50 :activation :relu :loss nil}
    {:in 50 :out 50 :activation :relu :loss nil}
-   {:in 50 :out 1 :activation :softmax :loss nil}])
+   {:in 50 :out 1 :activation :softmax :loss :mse}])
 
 (def topology2
   [[1 50 :relu]
    [50 50 :relu]
-   [50 1 :softmax]])
+   [50 1 :softmax :mse]])
 
 (deftest shorthand
   (is (= topology1 (ai/parse-shorthand topology2))))
 
 (def layer-config-test [{:in 4 :out 4 :activation :relu}
                         {:in 4 :out 4 :activation :relu}
-                        {:in 4 :out 10 :activation :softmax}])
+                        {:in 4 :out 10 :activation :softmax :loss :negative-log-likelihood}])
 
 (def test-net (ai/network layer-config-test
                (ai/default-classification-options)))

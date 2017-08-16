@@ -59,6 +59,7 @@
    :weight-init (WeightInit/XAVIER)
    :updater (Updater/NESTEROVS)
    :momentum 0.9
+   :activation (Activation/RELU)
    :pretrain false
    :backprop true
    :num-hidden-nodes 50
@@ -116,21 +117,25 @@
 (defn interpret-layer [i layer topo-count options-map]
     (fn [net]
       (-> net
-        (.layer i (-> (if (= i topo-count)
-                          (OutputLayer$Builder. (get loss-functions (:output-loss-function options-map)))
-                          ((get layer-builders (:layer-builder options-map))))
-                      (.nIn (:in layer))
-                      (.nOut (:out layer))
-                      ((fn [layer-config]
-                         (when-let [loss-fn (:loss layer)]
-                           (.lossFunction layer-config (get loss-functions loss-fn)))
-                         layer-config))
-                      ((fn [layer-config]
-                         (when-let [activation (:activation layer)]
-                           (.activation layer-config 
-                             (get activation-options (:activation layer))))
-                         layer-config));should emit error when cant find function
-                      (.build))))))
+        (.layer i 
+          (-> (if (= i topo-count)
+                  (OutputLayer$Builder. (get loss-functions 
+                                          (if (nil? (:loss layer))
+                                            :mse
+                                            (:loss layer))))
+                  ((get layer-builders (:layer-builder options-map))))
+              (.nIn (:in layer))
+              (.nOut (:out layer))
+              ((fn [layer-config]
+                (if (and (:loss layer) (not= i topo-count))
+                 (.lossFunction layer-config (get loss-functions (:loss layer))))
+                layer-config))
+              ((fn [layer-config]
+                (when-let [activation (:activation layer)]
+                 (.activation layer-config 
+                  (get activation-options (:activation layer))))
+                layer-config));should emit error when cant find function
+              (.build))))))
 
 ;;pass in shorthand with vectors
 ;;Returns a vector of functions to be called on the net
