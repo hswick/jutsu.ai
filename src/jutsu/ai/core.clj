@@ -63,7 +63,6 @@
    :pretrain false
    :backprop true
    :num-hidden-nodes 50
-   :output-loss-function :mse
    :layer-builder :default})
 
 (defn default-classification-options []
@@ -76,7 +75,6 @@
    :regularization true
    :l2 1e-4
    :weight-init (WeightInit/XAVIER)
-   :output-loss-function :negative-log-likelihood
    :pretrain false
    :backprop true
    :layer-builder :default})

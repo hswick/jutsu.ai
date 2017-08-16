@@ -49,8 +49,7 @@
 (def test-encoder (ai/network autoencoder-config
                     (merge (ai/default-classification-options)
                       {:optimization-algo :line-gradient-descent
-                       :layer-builder :rbm
-                       :output-loss-function :mse})))
+                       :layer-builder :rbm})))
 
 (deftest init-autoencoder
   (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-encoder))))
