@@ -1,6 +1,23 @@
 # jutsu.ai
 
-Clojure wrapper around deeplearning4j with some added syntactic sugar
+Clojure wrapper around deeplearning4j with some added syntactic sugar.
+
+What if I told you that you could do machine learning on the JVM without wanting to cry or 
+set your hair on fire?
+
+Meant to be the most syntactically simple machine learning library for Clojure/Java ecosystem.
+
+No more Snakes!
+http://wp.patheos.com.s3.amazonaws.com/blogs/wildhunt/files/2011/03/saintpatrick.jpg
+
+jutsu.ai uses Clojure specific code idioms, like Data as Code, to create an
+aesthetic and declarative api.
+
+# Solid Foundations
+
+DeepLearning4j 
+
+It seems a wrapper for deeplearning4j evaded the clojure ecosystem like a white whale. But Alas! Thy beast has been conquered.
 
 # Usage
 
