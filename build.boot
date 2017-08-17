@@ -16,7 +16,7 @@
 (task-options!
   jar {:main 'jutsu.ai.core
        :manifest {"Description" "Clojure library meant to do..."}}
-  pom {:version "0.0.1"
+  pom {:version "0.0.5"
        :project 'hswick/jutsu.ai
        :description "jutsu.ai is meant to do..."
        :url "https://github.com/author/jutsu.ai"}
