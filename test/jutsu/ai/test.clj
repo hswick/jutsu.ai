@@ -1,6 +1,7 @@
 (ns jutsu.ai.test
   (:require [clojure.test :refer :all]
-            [jutsu.ai.core :as ai]))
+            [jutsu.ai.core :as ai]
+            [jutsu.matrix.core :as m]))
 
 (def topology1
   [{:in 1 :out 50 :activation :relu :loss nil}
@@ -17,7 +18,9 @@
 
 (def layer-config-test [{:in 4 :out 4 :activation :relu}
                         {:in 4 :out 4 :activation :relu}
-                        {:in 4 :out 10 :activation :softmax :loss :negative-log-likelihood}])
+                        {:in 4 :out 10 
+                         :activation :softmax 
+                         :loss :negative-log-likelihood}])
 
 (def test-net (ai/network layer-config-test
                (ai/default-classification-options)))
@@ -30,11 +33,13 @@
     (-> test-net
         (ai/initialize-net!)
         (ai/train-net! 10 dataset-iterator)
-        (ai/save-model "classnet.zip"))))
+        (ai/save-model "classnet.zip"))
+    (.reset dataset-iterator)
+    (println (ai/evaluate test-net dataset-iterator))))
 
 (train-classification-net)
 
-(def autoencoder-config 
+(def autoencoder-config
   [{:in 2000 :out 1000 :loss :kl-divergence}
    {:in 1000 :out 500 :loss :kl-divergence}
    {:in 500 :out 250 :loss :kl-divergence}
@@ -54,4 +59,25 @@
 (deftest init-autoencoder
   (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-encoder))))
 
+(def iris-net-config [{:in 4 :out 10 :activation :relu}
+                      {:in 10 :out 10 :activation :relu}
+                      {:in 10 :out 3 :activation :softmax :loss :negative-log-likelihood}])
 
+(def iris-net (ai/network iris-net-config
+                (ai/default-classification-options)))
+
+(defn iris-train []
+  (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)]
+    (-> iris-net
+        (ai/initialize-net!)
+        (ai/train-net! 200 iris-iterator)
+        (ai/save-model "iris-model"))
+    (.reset iris-iterator)
+    (println (ai/evaluate iris-net iris-iterator))))
+
+(iris-train)
+
+(->> (m/matrix [7.1 3.0 5.9 2.1])
+     (ai/output iris-net)
+     (m/get-max-index)
+     (println))

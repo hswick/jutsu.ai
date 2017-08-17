@@ -14,7 +14,8 @@
            [org.deeplearning4j.optimize.listeners ScoreIterationListener]
            [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
            [org.deeplearning4j.util ModelSerializer]
-           [org.deeplearning4j.nn.conf.layers RBM$Builder]))
+           [org.deeplearning4j.nn.conf.layers RBM$Builder]
+           [org.deeplearning4j.eval Evaluation RegressionEvaluation]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -165,3 +166,19 @@
       (.backprop (:backprop options-map))
       (.build)
       (MultiLayerNetwork.))))
+
+(defn output
+  ([net data] (.output net data false))
+  ([net data train?] (.output net data train?)))
+
+(defn evaluate [net dataset-iterator]
+  (.stats (.evaluate net dataset-iterator)))
+
+(defn evaluate-regression [net dataset-iterator]
+  (.stats (.evaluateRegression net dataset-iterator)))
+
+(defn get-max-index [ndarray]
+  (last (sort-by second (map-indexed (fn [i n] [n i]) ndarray))))
+
+(defn get-min-index [ndarray]
+  (last (sort-by second (map-indexed (fn [i n] [n i]) ndarray))))
