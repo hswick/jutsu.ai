@@ -79,5 +79,5 @@
 
 (->> (m/matrix [7.1 3.0 5.9 2.1])
      (ai/output iris-net)
-     (m/get-max-index)
+     (m/max-index)
      (println))

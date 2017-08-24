@@ -6,7 +6,7 @@
                   [org.nd4j/nd4j-native-platform "0.8.0"]
                   [org.deeplearning4j/deeplearning4j-core "0.8.0"]
                   [org.nd4j/nd4j-api "0.8.0"]
-                  [hswick/jutsu.matrix "0.0.5" :scope "test"]
+                  [hswick/jutsu.matrix "0.0.7" :scope "test"]
                   [org.datavec/datavec-api "0.8.0"]]
   :repositories (conj (get-env :repositories)
                       ["clojars" {:url "https://clojars.org/repo"
@@ -16,7 +16,7 @@
 (task-options!
   jar {:main 'jutsu.ai.core
        :manifest {"Description" "Clojure library meant to do..."}}
-  pom {:version "0.0.7"
+  pom {:version "0.0.5"
        :project 'hswick/jutsu.ai
        :description "jutsu.ai is meant to do..."
        :url "https://github.com/author/jutsu.ai"}
