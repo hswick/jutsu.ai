@@ -15,7 +15,9 @@
            [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
            [org.deeplearning4j.util ModelSerializer]
            [org.deeplearning4j.nn.conf.layers RBM$Builder]
-           [org.deeplearning4j.eval Evaluation RegressionEvaluation]))
+           [org.deeplearning4j.nn.conf.layers GravesLSTM$Builder]
+           [org.deeplearning4j.eval Evaluation RegressionEvaluation]
+           [org.deeplearning4j.nn.conf.layers RnnOutputLayer$Builder]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -40,7 +42,8 @@
 
 (def layer-builders
   {:default (fn [] (DenseLayer$Builder.))
-   :rbm (fn [] (RBM$Builder.))})
+   :rbm (fn [] (RBM$Builder.))
+   :graves-lstm (fn [] (GravesLSTM$Builder.))})
 
 (def loss-functions
   {:mse (LossFunctions$LossFunction/MSE)
@@ -118,10 +121,15 @@
       (-> net
         (.layer i 
           (-> (if (= i topo-count)
-                  (OutputLayer$Builder. (get loss-functions 
-                                          (if (nil? (:loss layer))
-                                            :mse
-                                            (:loss layer))))
+                  (if (:recurrent layer)
+                    (RnnOutputLayer$Builder. (get loss-functions
+                                               (if (nil? (:loss layer))
+                                                 :mse
+                                                 (:loss layer))))
+                    (OutputLayer$Builder. (get loss-functions 
+                                            (if (nil? (:loss layer))
+                                              :mse
+                                              (:loss layer)))))
                   ((get layer-builders (:layer-builder options-map))))
               (.nIn (:in layer))
               (.nOut (:out layer))
@@ -180,9 +188,3 @@
 
 (defn evaluate-regression [net dataset-iterator]
   (.stats (.evaluateRegression net dataset-iterator)))
-
-(defn get-max-index [ndarray]
-  (last (sort-by second (map-indexed (fn [i n] [n i]) ndarray))))
-
-(defn get-min-index [ndarray]
-  (last (sort-by second (map-indexed (fn [i n] [n i]) ndarray))))

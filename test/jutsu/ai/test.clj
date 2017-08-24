@@ -81,3 +81,19 @@
      (ai/output iris-net)
      (m/max-index)
      (println))
+
+(def rnn-config
+  [{:in 1 :out 10 :activation :tanh}
+   {:in 10 
+    :out 1 
+    :activation :identity 
+    :loss :mse 
+    :recurrent true}])
+
+(def test-rnn (ai/network rnn-config
+                (merge (ai/default-classification-options)
+                  {:optimization-algo :line-gradient-descent
+                   :layer-builder :graves-lstm})))
+
+(deftest init-rnn
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-rnn))))
