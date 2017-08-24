@@ -130,6 +130,10 @@
                  (.lossFunction layer-config (get loss-functions (:loss layer))))
                 layer-config))
               ((fn [layer-config]
+                 (if (and (:dropout layer) (not= i topo-count))
+                   (.dropOut layer-config (:dropout layer)))
+                 layer-config))
+              ((fn [layer-config]
                 (when-let [activation (:activation layer)]
                  (.activation layer-config 
                   (get activation-options (:activation layer))))
