@@ -17,7 +17,9 @@
            [org.deeplearning4j.nn.conf.layers RBM$Builder]
            [org.deeplearning4j.nn.conf.layers GravesLSTM$Builder]
            [org.deeplearning4j.eval Evaluation RegressionEvaluation]
-           [org.deeplearning4j.nn.conf.layers RnnOutputLayer$Builder]))
+           [org.deeplearning4j.nn.conf.layers RnnOutputLayer$Builder]
+           [org.datavec.api.records.reader.impl.csv CSVSequenceRecordReader]
+           [org.deeplearning4j.datasets.datavec SequenceRecordReaderDataSetIterator]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -32,6 +34,24 @@
         rr (CSVRecordReader.)]
     (.initialize rr (FileSplit. path))
     (RecordReaderDataSetIterator. rr batch-size label-index num-possible-labels)))
+
+(defn sequence-regression-csv-iterator 
+  "Use for Recurrent Neural Nets"
+  [filename batch-size label-index]
+  (let [path (-> (ClassPathResource. filename)
+              (.getFile))
+        rr (CSVSequenceRecordReader. 0 ";")]
+    (.initialize rr (FileSplit. path))
+    (SequenceRecordReaderDataSetIterator. rr batch-size -1 label-index true)))
+
+(defn sequence-classification-csv-iterator
+  "Use for Recurrent Neural Nets"
+  [filename batch-size label-index num-possible-labels]
+  (let [path (-> (ClassPathResource. filename)
+                 (.getFile))
+        rr (CSVSequenceRecordReader. 0 ";")]
+    (.initialize rr (FileSplit. path))
+    (SequenceRecordReaderDataSetIterator. rr batch-size num-possible-labels label-index)))
 
 (def activation-options
   {:relu (Activation/RELU)
