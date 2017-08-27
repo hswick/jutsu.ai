@@ -5,7 +5,9 @@ Clojure wrapper for deeplearning4j with some added syntactic sugar.
 What if I told you that you could do machine learning on the JVM without wanting to cry or 
 set your hair on fire? The goal of this library is to be the most syntactically elegant machine learning library for Clojure/Java ecosystem. jutsu.ai uses Clojure specific code idioms, like Data as Code, to create an aesthetic and declarative api.
 
-The best of all, no more snakes! 
+The best of all, no more snakes!
+
+
 ![alt text](http://wp.patheos.com.s3.amazonaws.com/blogs/wildhunt/files/2011/03/saintpatrick.jpg)
 
 # Usage
