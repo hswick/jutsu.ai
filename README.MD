@@ -1,43 +1,35 @@
 # jutsu.ai
 
-Clojure wrapper around deeplearning4j with some added syntactic sugar.
+Clojure wrapper for deeplearning4j with some added syntactic sugar.
 
 What if I told you that you could do machine learning on the JVM without wanting to cry or 
-set your hair on fire?
+set your hair on fire? The goal of this library is to be the most syntactically elegant machine learning library for Clojure/Java ecosystem. jutsu.ai uses Clojure specific code idioms, like Data as Code, to create an aesthetic and declarative api.
 
-Meant to be the most syntactically simple machine learning library for Clojure/Java ecosystem.
-
-No more Snakes!
-http://wp.patheos.com.s3.amazonaws.com/blogs/wildhunt/files/2011/03/saintpatrick.jpg
-
-jutsu.ai uses Clojure specific code idioms, like Data as Code, to create an
-aesthetic and declarative api.
-
-# Solid Foundations
-
-DeepLearning4j 
-
-It seems a wrapper for deeplearning4j evaded the clojure ecosystem like a white whale. But Alas! Thy beast has been conquered.
+The best of all, no more snakes! 
+![alt text](http://wp.patheos.com.s3.amazonaws.com/blogs/wildhunt/files/2011/03/saintpatrick.jpg)
 
 # Usage
 
 ```clojure
-(def topology1
-  [{:in 1 :out 50 :activation :relu}
-   {:in 50 :out 50 :activation :relu}
-   {:in 50 :out 1 :activation :softmax}])
+;;Example configuration of a simple multilayer feedforward neural network architecture
+;;classifying the iris dataset.
+(def iris-net-config [{:in 4 :out 10 :activation :relu}
+                      {:in 10 :out 10 :activation :relu}
+                      {:in 10 :out 3 :activation :softmax :loss :negative-log-likelihood}])
 
-;;In this case order matters
-;;:in first
-;;:out second
-;;:activation third
-(def topology2
-  [[1 50 :relu]
-   [50 50 :relu]
-   [50 1 :softmax]])
-   
-(= topology1 (parse-shorthand topology2))
-;;=>true
+(def iris-net (ai/network iris-net-config
+                (ai/default-classification-options)))
+
+(defn iris-train []
+  (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)]
+    (-> iris-net
+        (ai/initialize-net!)
+        (ai/train-net! 200 iris-iterator)
+        (ai/save-model "iris-model"))
+    (.reset iris-iterator)
+    (println (ai/evaluate iris-net iris-iterator))))
+
+(iris-train)
 ```
 # Dev
 
