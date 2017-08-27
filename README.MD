@@ -10,6 +10,8 @@ The best of all, no more snakes!
 
 ![alt text](http://wp.patheos.com.s3.amazonaws.com/blogs/wildhunt/files/2011/03/saintpatrick.jpg)
 
+If you have any suggestions or fixes please feel free to submit a PR or post an issue!
+
 # Usage
 
 ```clojure
