@@ -103,11 +103,11 @@
 
 ;(println (.toJson (.getLayerWiseConfigurations test-rnn)))
 
-(def n (nai/network {:optimizationAlgo :sgd 
+(def n (nai/network {:optimization-algo :sgd 
                      :learning-rate 0.5
                      :momentum 0.9
-                     :layers [{:nin 1 :nout 2 :activation :tanh}
-                              {:nin 2 :nout 1 :activation :identity}] 
+                     :layers [[:dense {:nin 1 :nout 2 :activation :tanh}]       
+                              [:output {:nin 2 :nout 1 :activation :identity :loss-function :mse}]]      
                      :pretrain false}))
 
 (println n)

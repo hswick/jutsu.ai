@@ -66,15 +66,32 @@
                 (to-array args)))
 
 (defn parse-element [el]
-  (let [method (first el)
-        ]))
+  (let [method (translate-to-java (first el))
+        arg (parse-arg (second el))]
+    (fn [net] (str-invoke net method arg))))
 
+(def layer-builders
+  {:default (fn [] (DenseLayer$Builder.))
+   :rbm (fn [] (RBM$Builder.))
+   :graves-lstm (fn [] (GravesLSTM$Builder.))
+   :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
+   :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))})
+
+(defn parse-body [body]
+  (apply comp (map-indexed (fn [i layer]
+                             (let [pre-layer (map (fn [k] [k (get layer k)]) (keys (second layer)))
+                                   methods (apply comp (map parse-element pre-layer))]
+                               (fn [net] (.layer net i)))))
+    body))
+                   
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
         body-footer (split-at 1 (second parsed-config))
-        body (first body-footer)
+        body (second (first body-footer))
         footer (second body-footer)]
-    header))
+    [(apply comp (map parse-element header))
+     (fn [net] (.list net))
+     (apply comp (map parse-element footer))]))
     
 (defn network [edn-config]
   (-> edn-config
