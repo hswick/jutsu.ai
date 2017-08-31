@@ -110,6 +110,4 @@
                               {:nin 2 :nout 1 :activation :identity}] 
                      :pretrain false}))
 
-(str-invoke nai/netty "learningRate" 0.5)
-
-(println nai/netty)
+(println n)

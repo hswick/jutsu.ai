@@ -65,6 +65,10 @@
                 method-str 
                 (to-array args)))
 
+(defn parse-element [el]
+  (let [method (first el)
+        ]))
+
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
         body-footer (split-at 1 (second parsed-config))
