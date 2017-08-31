@@ -1,7 +1,8 @@
 (ns jutsu.ai.test
   (:require [clojure.test :refer :all]
             [jutsu.ai.core :as ai]
-            [jutsu.matrix.core :as m]))
+            [jutsu.matrix.core :as m]
+            [jutsu.ai.new-core :as nai]))
 
 (def topology1
   [{:in 1 :out 50 :activation :relu :loss nil}
@@ -97,3 +98,12 @@
 
 (deftest init-rnn
   (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-rnn))))
+
+;(println (.toJson (.getLayerWiseConfigurations iris-net)))
+
+;(println (.toJson (.getLayerWiseConfigurations test-rnn)))
+
+(def n (nai/network {:optimizationAlgo :sgd :learning-rate 0.1 :layers [] :pretrain false}))
+
+(println n)
+
