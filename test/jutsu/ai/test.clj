@@ -111,5 +111,5 @@
 
 (clojure.pprint/pprint n)
 
-(eval ())
+(println ((nai/parse-options ".toString") [1 2]))
 

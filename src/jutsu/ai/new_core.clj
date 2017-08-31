@@ -63,24 +63,12 @@
         arg (second el)]
        (symbol (str "(fn [net] (" func " net " (parse-arg arg) "))"))))
 
-(defn parse-header [header]
-  (into [] (seq (map parse-element header))))
-
-(defn parse-footer [footer]
-  (into [] (seq (map parse-element footer))))
-
-(defn parse-body [body]
-  [(symbol (str "(fn [net] (.list net))"))
-   (into [] body)])
-
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
         body-footer (split-at 1 (second parsed-config))
         body (first body-footer)
-        footer (second body-footer)] 
-    {:header (parse-header header)
-     :body (parse-body body)
-     :footer (parse-footer footer)}))
+        footer (second body-footer)]
+    header))
     
 (defn network [edn-config]
   (-> edn-config
@@ -88,3 +76,6 @@
       branch-config))
 
 (def netty (NeuralNetConfiguration$Builder.))
+
+(defmacro parse-options [options]
+  (list 'fn '[net] (list (symbol options) 'net)))
