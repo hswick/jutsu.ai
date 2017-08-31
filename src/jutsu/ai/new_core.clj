@@ -77,5 +77,6 @@
 
 (def netty (NeuralNetConfiguration$Builder.))
 
-(defmacro parse-options [options]
-  (list 'fn '[net] (list (symbol options) 'net)))
+(defmacro parse-options 
+  ([option] (list 'fn '[net] (list (symbol option) 'net)))
+  ([option arg] (list 'fn '[net] (list (symbol option) 'net (parse-arg arg)))))

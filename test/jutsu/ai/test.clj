@@ -111,5 +111,5 @@
 
 (clojure.pprint/pprint n)
 
-(println ((nai/parse-options ".toString") [1 2]))
+(println ((nai/parse-options ".optimizationAlgo" :sgd) n))
 
