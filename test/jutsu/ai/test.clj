@@ -107,7 +107,9 @@
                      :learning-rate 0.5
                      :momentum 0.9
                      :layers [[:dense {:nin 1 :nout 2 :activation :tanh}]       
-                              [:output {:nin 2 :nout 1 :activation :identity :loss-function :mse}]]      
+                              [:output {:nin 2 :nout 1 
+                                        :activation :identity 
+                                        :loss-function :mse}]]      
                      :pretrain false}))
 
 (println n)

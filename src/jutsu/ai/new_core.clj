@@ -21,9 +21,6 @@
            [org.datavec.api.records.reader.impl.csv CSVSequenceRecordReader]
            [org.deeplearning4j.datasets.datavec SequenceRecordReaderDataSetIterator]))
 
-(defn network-config [input]
-  (NeuralNetConfiguration$Builder.))
-
 (defn translate-to-java [key]
   (let [tokens (clojure.string/split (name key) #"-")
         t0 (first tokens)]
@@ -77,11 +74,12 @@
    :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
    :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))})
 
+;;layers with loss can be special
 (defn parse-body [body]
   (apply comp (map-indexed (fn [i layer]
                              (let [pre-layer (map (fn [k] [k (get layer k)]) (keys (second layer)))
                                    methods (apply comp (map parse-element pre-layer))]
-                               (fn [net] (.layer net i)))))
+                               (fn [net] (.layer net i (get layer-builders (first layer)))))))
     body))
                    
 (defn branch-config [parsed-config]
@@ -91,7 +89,9 @@
         footer (second body-footer)]
     [(apply comp (map parse-element header))
      (fn [net] (.list net))
-     (apply comp (map parse-element footer))]))
+     (parse-body body)
+     (apply comp (map parse-element footer))
+     (fn [net] (.build net))]))
     
 (defn network [edn-config]
   (-> edn-config
