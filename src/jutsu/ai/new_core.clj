@@ -74,28 +74,40 @@
    :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
    :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))})
 
+(defn prepare-layer-config [layer-config]
+  (->> (map (fn [k] [k (get layer-config k)]) (keys layer-config))
+       (map parse-element)
+       (apply comp)))
+
+;;produce a transducer to call on the layer builder
 ;;layers with loss can be special
+;;look for loss keyword
+(defn parse-layer [i [layer-type layer-config]]
+  (let [layer-builder (get layer-builders layer-type)
+        config-methods (prepare-layer-config layer-config)]
+    (fn [net] (.layer net i 
+                ((comp config-methods (fn [layer] (.build layer))) layer-builder)))))
+
 (defn parse-body [body]
-  (apply comp (map-indexed (fn [i layer]
-                             (let [pre-layer (map (fn [k] [k (get layer k)]) (keys (second layer)))
-                                   methods (apply comp (map parse-element pre-layer))]
-                               (fn [net] (.layer net i (get layer-builders (first layer)))))))
-    body))
-                   
+  (map-indexed (fn [i layer] (parse-layer i layer)) body))
+
+;;Order of header-body-footer matters
+;;builds a transducer of instance methods to call on the neural net object
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
         body-footer (split-at 1 (second parsed-config))
-        body (second (first body-footer))
+        body (second (ffirst body-footer))
         footer (second body-footer)]
     [(apply comp (map parse-element header))
      (fn [net] (.list net))
-     (parse-body body)
+     (apply comp (parse-body body))
      (apply comp (map parse-element footer))
      (fn [net] (.build net))]))
-    
+
 (defn network [edn-config]
   (-> edn-config
-      init-config-parse
-      branch-config))
+      init-config-parse;;split config at layers index
+      branch-config
+      ((fn [config] (apply comp config)))))
 
 (def netty (NeuralNetConfiguration$Builder.))

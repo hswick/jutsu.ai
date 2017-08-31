@@ -106,10 +106,8 @@
 (def n (nai/network {:optimization-algo :sgd 
                      :learning-rate 0.5
                      :momentum 0.9
-                     :layers [[:dense {:nin 1 :nout 2 :activation :tanh}]       
-                              [:output {:nin 2 :nout 1 
-                                        :activation :identity 
-                                        :loss-function :mse}]]      
+                     :layers [[:dense  {:nin 1 :nout 2 :activation :tanh}]
+                              [:dense  {:nin 2 :nout 1 :activation :tanh}]]   
                      :pretrain false}))
 
-(println n)
+((n nai/netty))
