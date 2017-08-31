@@ -111,5 +111,7 @@
 
 (clojure.pprint/pprint n)
 
-(println ((nai/parse-options ".optimizationAlgo" :sgd) n))
+(println ((nai/parse-options ".toString") [1 2]))
+
+(println (.toJson (.build ((nai/parse-options ".optimizationAlgo" (nai/parse-arg :sgd)) nai/netty))))
 

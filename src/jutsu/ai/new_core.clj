@@ -45,9 +45,9 @@
                              ks))))
 
 (def options
-  {:sgd '(OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
-   :tanh '(Activation/TANH)
-   :identity '(Activation/IDENTITY)})
+  {:sgd (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :tanh (Activation/TANH)
+   :identity (Activation/IDENTITY)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
@@ -79,4 +79,4 @@
 
 (defmacro parse-options 
   ([option] (list 'fn '[net] (list (symbol option) 'net)))
-  ([option arg] (list 'fn '[net] (list (symbol option) 'net (parse-arg arg)))))
+  ([option arg] (list 'fn '[net] (list (symbol option) 'net arg))))
