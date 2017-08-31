@@ -27,7 +27,7 @@
 (defn translate-to-java [key]
   (let [tokens (clojure.string/split (name key) #"-")
         t0 (first tokens)]
-    (str "." t0 (apply str (mapv clojure.string/capitalize (rest tokens))))))
+    (str t0 (apply str (mapv clojure.string/capitalize (rest tokens))))))
 
 (defn get-layers-key-index [ks]
   (let [index (.indexOf ks :layers)]
@@ -40,7 +40,7 @@
   (let [ks (keys edn-config)
         layers-index (get-layers-key-index ks)]
     (split-at layers-index (map
-                             (fn [k] [(translate-to-java k) 
+                             (fn [k] [k 
                                       (get edn-config k)])
                              ks))))
 
@@ -55,22 +55,22 @@
       (throw (Exception. (str arg " is not an option")))
       option)))
 
-(defn parse-arg [arg] 
+(defn parse-arg [arg]
   (if (keyword? arg) (get-option arg) arg))
 
-;;Shout out to this answer https://stackoverflow.com/questions/1710970/dynamic-method-calls-in-a-clojure-macro
-(defn make-call [name val]
-  (list (symbol (str "." name)) val))
-
-(defmacro map-set [class things]
-  `(doto ~class ~@(map make-call (keys things) (vals things))))
+;;from https://en.wikibooks.org/wiki/Clojure_Programming/Examples#Invoking_Java_method_through_method_name_as_a_String
+(defn str-invoke [instance method-str & args]
+            (clojure.lang.Reflector/invokeInstanceMethod 
+                instance 
+                method-str 
+                (to-array args)))
 
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
         body-footer (split-at 1 (second parsed-config))
         body (first body-footer)
         footer (second body-footer)]
-    [(parse-elements header)]))
+    header))
     
 (defn network [edn-config]
   (-> edn-config

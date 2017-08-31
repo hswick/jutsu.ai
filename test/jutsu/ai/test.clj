@@ -110,14 +110,6 @@
                               {:nin 2 :nout 1 :activation :identity}] 
                      :pretrain false}))
 
-(clojure.pprint/pprint n)
-
-(defn make-call [name val]
-  (list (symbol (str "." name)) val))
-
-(defmacro map-set [class things]
-  `(doto ~class ~@(map make-call (keys things) (vals things))))
-
-(map-set nai/netty {"learningRate" 0.5 "momentum" 0.9})
+(str-invoke nai/netty "learningRate" 0.5)
 
 (println nai/netty)
