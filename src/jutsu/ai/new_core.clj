@@ -27,7 +27,7 @@
 (defn translate-to-java [key]
   (let [tokens (clojure.string/split (name key) #"-")
         t0 (first tokens)]
-    (str "." t0 (apply str (map clojure.string/capitalize (rest tokens))))))
+    (str "." t0 (apply str (mapv clojure.string/capitalize (rest tokens))))))
 
 (defn get-layers-key-index [ks]
   (let [index (.indexOf ks :layers)]
@@ -58,17 +58,20 @@
 (defn parse-arg [arg] 
   (if (keyword? arg) (get-option arg) arg))
 
-(defn parse-element [el]
-  (let [func (first el)
-        arg (second el)]
-       (symbol (str "(fn [net] (" func " net " (parse-arg arg) "))"))))
+(defmacro parse-option 
+  ([option] (list 'fn '[net] (list option 'net)))
+  ([option arg] (list 'fn '[net] (list option 'net arg))))
 
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
         body-footer (split-at 1 (second parsed-config))
         body (first body-footer)
         footer (second body-footer)]
-    header))
+    (map (fn [el]
+           (let [option (first el)
+                 arg (second el)]
+             (parse-option (symbol option) arg))) 
+      header)))
     
 (defn network [edn-config]
   (-> edn-config
@@ -76,7 +79,3 @@
       branch-config))
 
 (def netty (NeuralNetConfiguration$Builder.))
-
-(defmacro parse-options 
-  ([option] (list 'fn '[net] (list (symbol option) 'net)))
-  ([option arg] (list 'fn '[net] (list (symbol option) 'net arg))))

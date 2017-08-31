@@ -111,7 +111,7 @@
 
 (clojure.pprint/pprint n)
 
-(println ((nai/parse-options ".toString") [1 2]))
-
-(println (nai/parse-options ".optimizationAlgo" (nai/parse-arg :sgd)))
+((nai/parse-option (symbol ".toString")) [1 2])
+((nai/parse-option (symbol".learningRate") 0.1) nai/netty)
+((first n) nai/netty)
 
