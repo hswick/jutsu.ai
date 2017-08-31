@@ -104,14 +104,20 @@
 ;(println (.toJson (.getLayerWiseConfigurations test-rnn)))
 
 (def n (nai/network {:optimizationAlgo :sgd 
-                     :learning-rate 0.1 
+                     :learning-rate 0.5
+                     :momentum 0.9
                      :layers [{:nin 1 :nout 2 :activation :tanh}
                               {:nin 2 :nout 1 :activation :identity}] 
                      :pretrain false}))
 
 (clojure.pprint/pprint n)
 
-((nai/parse-option (symbol ".toString")) [1 2])
-((nai/parse-option (symbol".learningRate") 0.1) nai/netty)
-((first n) nai/netty)
+(defn make-call [name val]
+  (list (symbol (str "." name)) val))
 
+(defmacro map-set [class things]
+  `(doto ~class ~@(map make-call (keys things) (vals things))))
+
+(map-set nai/netty {"learningRate" 0.5 "momentum" 0.9})
+
+(println nai/netty)

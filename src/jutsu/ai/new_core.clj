@@ -58,20 +58,19 @@
 (defn parse-arg [arg] 
   (if (keyword? arg) (get-option arg) arg))
 
-(defmacro parse-option 
-  ([option] (list 'fn '[net] (list option 'net)))
-  ([option arg] (list 'fn '[net] (list option 'net arg))))
+;;Shout out to this answer https://stackoverflow.com/questions/1710970/dynamic-method-calls-in-a-clojure-macro
+(defn make-call [name val]
+  (list (symbol (str "." name)) val))
+
+(defmacro map-set [class things]
+  `(doto ~class ~@(map make-call (keys things) (vals things))))
 
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
         body-footer (split-at 1 (second parsed-config))
         body (first body-footer)
         footer (second body-footer)]
-    (map (fn [el]
-           (let [option (first el)
-                 arg (second el)]
-             (parse-option (symbol option) arg))) 
-      header)))
+    [(parse-elements header)]))
     
 (defn network [edn-config]
   (-> edn-config
