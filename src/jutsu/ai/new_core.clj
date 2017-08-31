@@ -45,30 +45,42 @@
                              ks))))
 
 (def options
-  {:sgd '(OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)})
+  {:sgd '(OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :tanh '(Activation/TANH)
+   :identity '(Activation/IDENTITY)})
+
+(defn get-option [arg]
+  (let [option (get options arg)]
+    (if (nil? option)
+      (throw (Exception. (str arg " is not an option")))
+      option)))
+
+(defn parse-arg [arg] 
+  (if (keyword? arg) (get-option arg) arg))
 
 (defn parse-element [el]
   (let [func (first el)
         arg (second el)]
-       (str "(fn [net] (" func " net " (parse-arg arg) "))")))
-
-(defn parse-arg [arg] 
-  (if (keyword? arg) (get options arg) arg))
+       (symbol (str "(fn [net] (" func " net " (parse-arg arg) "))"))))
 
 (defn parse-header [header]
-  (seq (map parse-element header)))
+  (into [] (seq (map parse-element header))))
 
 (defn parse-footer [footer]
-  (seq (map 
-         (fn [el]
-           (let [func (first el)])))))
+  (into [] (seq (map parse-element footer))))
+
+(defn parse-body [body]
+  [(symbol (str "(fn [net] (.list net))"))
+   (into [] body)])
 
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
-        body-footer (second parsed-config)
+        body-footer (split-at 1 (second parsed-config))
         body (first body-footer)
         footer (second body-footer)] 
-    (parse-header header)))
+    {:header (parse-header header)
+     :body (parse-body body)
+     :footer (parse-footer footer)}))
     
 (defn network [edn-config]
   (-> edn-config

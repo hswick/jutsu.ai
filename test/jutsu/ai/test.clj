@@ -103,7 +103,11 @@
 
 ;(println (.toJson (.getLayerWiseConfigurations test-rnn)))
 
-(def n (nai/network {:optimizationAlgo :sgd :learning-rate 0.1 :layers [] :pretrain false}))
+(def n (nai/network {:optimizationAlgo :sgd 
+                     :learning-rate 0.1 
+                     :layers [{:nin 1 :nout 2 :activation :tanh}
+                              {:nin 2 :nout 1 :activation :identity}] 
+                     :pretrain false}))
 
-(println n)
+(clojure.pprint/pprint n)
 
