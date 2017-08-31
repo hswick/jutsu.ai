@@ -47,24 +47,28 @@
 (def options
   {:sgd '(OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)})
 
+(defn parse-element [el]
+  (let [func (first el)
+        arg (second el)]
+       (str "(fn [net] (" func " net " (parse-arg arg) "))")))
+
 (defn parse-arg [arg] 
   (if (keyword? arg) (get options arg) arg))
 
 (defn parse-header [header]
-  (seq (map
+  (seq (map parse-element header)))
+
+(defn parse-footer [footer]
+  (seq (map 
          (fn [el]
-           (let [func (first el)
-                 arg (second el)]
-             (str "(fn [net] (" func " net " (parse-arg arg) "))")))
-         header)))
+           (let [func (first el)])))))
 
 (defn branch-config [parsed-config]
   (let [header (first parsed-config)
         body-footer (second parsed-config)
         body (first body-footer)
-        footer (second body-footer)]
-    (str 
-      (parse-header header))))
+        footer (second body-footer)] 
+    (parse-header header)))
     
 (defn network [edn-config]
   (-> edn-config
