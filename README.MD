@@ -17,21 +17,28 @@ If you have any suggestions or fixes please feel free to submit a PR or post an 
 ```clojure
 ;;Example configuration of a simple multilayer feedforward neural network architecture
 ;;classifying the iris dataset.
-(def iris-net-config [{:in 4 :out 10 :activation :relu}
-                      {:in 10 :out 10 :activation :relu}
-                      {:in 10 :out 3 :activation :softmax :loss :negative-log-likelihood}])
+(def iris-net-config {:layers [[:dense {:n-in 4 :n-out 10 :activation :relu}]
+                                [:dense {:n-in 10 :n-out 10 :activation :relu}]
+                                [:output {:n-in 10 :n-out 3
+                                          :activation :softmax
+                                          :loss :negative-log-likelihood}]]})
 
-(def iris-net (ai/network iris-net-config
-                (ai/default-classification-options)))
+(def iris-net (-> iris-net-config
+				  config-network
+                  initialize-net!))
 
 (defn iris-train []
   (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)]
     (-> iris-net
-        (ai/initialize-net!)
         (ai/train-net! 200 iris-iterator)
         (ai/save-model "iris-model"))
     (.reset iris-iterator)
-    (println (ai/evaluate iris-net iris-iterator))))
+    (println (ai/evaluate network iris-iterator))))
+    
+(->> (m/matrix [7.1 3.0 5.9 2.1])
+     (ai/output network)
+     (m/max-index)
+     (println))
 
 (iris-train)
 ```
