@@ -3,7 +3,7 @@
             [jutsu.ai.core :as ai]
             [jutsu.matrix.core :as m]))
 
-(def n (ai/config-network {:optimization-algo :sgd 
+(def n (ai/network-config {:optimization-algo :sgd 
                            :learning-rate 0.5
                            :momentum 0.9
                            :layers [[:dense  {:n-in 1 :n-out 2 :activation :tanh}]
@@ -50,7 +50,7 @@
             [:rbm {:n-in 500 :n-out 1000 :loss-function :kl-divergence}]
             [:output {:n-in 1000 :n-out 2000 :loss :mse :activation :sigmoid}]]})
 
-(def test-encoder (ai/config-network autoencoder-config2))
+(def test-encoder (ai/network-config autoencoder-config2))
 
 (deftest init-autoencoder
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-encoder))))
@@ -82,7 +82,7 @@
   {:layers [[:dense {:n-in 1 :n-out 10 :activation :tanh}]
             [:rnn-output {:n-out 10 :n-in 1 :activation :identity :loss :mse}]]})
 
-(def test-rnn (ai/netowrk-config rnn-config2))
+(def test-rnn (ai/network-config rnn-config2))
 
 (deftest init-rnn
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-rnn))))
