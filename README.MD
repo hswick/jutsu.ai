@@ -25,7 +25,7 @@ If you have any suggestions or fixes please feel free to submit a PR or post an 
 
 (def iris-net (-> iris-net-config
 		config-network
-		initialize-net!))
+		initialize-net))
 
 (defn iris-train []
   (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)]

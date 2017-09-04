@@ -172,9 +172,9 @@
                                branch-config)]
     (network-transducer (NeuralNetConfiguration$Builder.))))
 
-(defn initialize-net!
+(defn initialize-net
   ([net-config]
-   (initialize-net! net-config (list (ScoreIterationListener. 1))))
+   (initialize-net net-config (list (ScoreIterationListener. 1))))
   ([net-config listeners]
    (let [net (MultiLayerNetwork. net-config)]
      (.init net)

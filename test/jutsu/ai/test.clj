@@ -29,7 +29,7 @@
 
 (defn train-classification-net []
   (let [dataset-iterator (ai/classification-csv-iterator "classification_data.csv" 4 4 10)
-        network (ai/initialize-net! test-net)]
+        network (ai/initialize-net test-net)]
     (-> network
         (ai/train-net! 10 dataset-iterator)
         (ai/save-model "classnet.zip"))
@@ -65,7 +65,7 @@
 
 (defn iris-train []
   (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)
-        network (ai/initialize-net! iris-net)]
+        network (ai/initialize-net iris-net)]
     (-> network
         (ai/train-net! 200 iris-iterator)
         (ai/save-model "iris-model"))
