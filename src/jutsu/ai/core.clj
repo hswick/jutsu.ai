@@ -118,7 +118,7 @@
    :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))})
 
 (defn prepare-layer-config [layer-config]
-  (->> (map (fn [k] [k (get layer-config k)]) (keys layer-config))
+  (->> (partition 2 layer-config)
        (map parse-element)
        (apply comp)))
 
