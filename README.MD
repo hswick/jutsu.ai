@@ -24,7 +24,7 @@ If you have any suggestions or fixes please feel free to submit a PR or post an 
 					  :loss :negative-log-likelihood}]]})
 
 (def iris-net (-> iris-net-config
-		config-network
+		network-config
 		initialize-net))
 
 (defn iris-train []

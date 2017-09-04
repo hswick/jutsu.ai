@@ -166,7 +166,7 @@
           footer-transducer
           .build))))
           
-(defn config-network [edn-config]
+(defn network-config [edn-config]
   (let [network-transducer (-> edn-config
                                init-config-parse;;split config at layers index
                                branch-config)]

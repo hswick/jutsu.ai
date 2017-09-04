@@ -22,7 +22,7 @@
                                              :activation :softmax 
                                              :loss :negative-log-likelihood}]]})
                           
-(def test-net (ai/config-network layer-config-test-2))
+(def test-net (ai/network-config layer-config-test-2))
 
 (deftest init-classification-net
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-net))))
@@ -61,7 +61,7 @@
                                           :activation :softmax
                                           :loss :negative-log-likelihood}]]})
 
-(def iris-net (ai/config-network iris-net-config2))
+(def iris-net (ai/network-config iris-net-config2))
 
 (defn iris-train []
   (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)
@@ -82,7 +82,7 @@
   {:layers [[:dense {:n-in 1 :n-out 10 :activation :tanh}]
             [:rnn-output {:n-out 10 :n-in 1 :activation :identity :loss :mse}]]})
 
-(def test-rnn (ai/config-network rnn-config2))
+(def test-rnn (ai/netowrk-config rnn-config2))
 
 (deftest init-rnn
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-rnn))))
