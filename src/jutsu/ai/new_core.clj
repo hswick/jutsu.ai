@@ -28,9 +28,9 @@
 
 (defn get-layers-key-index [ks]
   (let [index (.indexOf ks :layers)]
-    (if (not= -1 index) 
-      (if (> index 0) index
-        (throw (Exception. ":layers key cannot be at zero index")))
+    (if (not= -1 index) index
+      ;(if (> index 0) index
+      ;  (throw (Exception. ":layers key cannot be at zero index"))
       (throw (Exception. ":layers key not found in config")))))
 
 (defn init-config-parse [edn-config]
@@ -44,12 +44,18 @@
 (def options
   {:sgd (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
    :tanh (Activation/TANH)
-   :identity (Activation/IDENTITY)})
+   :identity (Activation/IDENTITY)
+   :mse (LossFunctions$LossFunction/MSE)
+   :negative-log-likelihood (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
+   :kl-divergence (LossFunctions$LossFunction/KL_DIVERGENCE)
+   :relu (Activation/RELU)
+   :softmax (Activation/SOFTMAX)
+   :sigmoid (Activation/SIGMOID)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
     (if (nil? option)
-      (throw (Exception. (str arg " is not an option")))
+      (throw (Exception. (str arg " is not a supported justu.ai option")))
       option)))
 
 (defn parse-arg [arg]
@@ -65,10 +71,11 @@
 (defn parse-element [el]
   (let [method (translate-to-java (first el))
         arg (parse-arg (second el))]
-    (fn [net] (str-invoke net method arg))))
+    (fn [net]
+      (str-invoke net method arg))))
 
 (def layer-builders
-  {:default (fn [] (DenseLayer$Builder.))
+  {:dense (fn [] (DenseLayer$Builder.))
    :rbm (fn [] (RBM$Builder.))
    :graves-lstm (fn [] (GravesLSTM$Builder.))
    :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
@@ -79,17 +86,35 @@
        (map parse-element)
        (apply comp)))
 
+(defn normal-layer [i layer-builder config]
+  (let [config-methods (prepare-layer-config config)]
+    (fn [net]
+      (.layer net i (-> (layer-builder)
+                        config-methods
+                        .build)))))
+
+(defn special-loss-layer [i layer-builder config]
+  (let [loss-fn (parse-arg (get config :loss))
+        config-methods (prepare-layer-config (dissoc config :loss))]
+    (fn [net]
+      ;(println net)
+      ;(println loss-fn)
+      (.layer net i (-> (layer-builder loss-fn)
+                        config-methods
+                        .build)))))
+    
 ;;produce a transducer to call on the layer builder
 ;;layers with loss can be special
 ;;look for loss keyword
+;;need to create special case for output layer
 (defn parse-layer [i [layer-type layer-config]]
-  (let [layer-builder (get layer-builders layer-type)
-        config-methods (prepare-layer-config layer-config)]
-    (fn [net] (.layer net i 
-                ((comp config-methods (fn [layer] (.build layer))) layer-builder)))))
+  (let [layer-builder (get layer-builders layer-type)]
+    (if (contains? layer-config :loss)
+      (special-loss-layer i layer-builder layer-config)
+      (normal-layer i layer-builder layer-config))))
 
 (defn parse-body [body]
-  (map-indexed (fn [i layer] (parse-layer i layer)) body))
+  (doall (map-indexed (fn [i layer] (parse-layer i layer)) body)))
 
 ;;Order of header-body-footer matters
 ;;builds a transducer of instance methods to call on the neural net object
@@ -97,17 +122,29 @@
   (let [header (first parsed-config)
         body-footer (split-at 1 (second parsed-config))
         body (second (ffirst body-footer))
-        footer (second body-footer)]
-    [(apply comp (map parse-element header))
-     (fn [net] (.list net))
-     (apply comp (parse-body body))
-     (apply comp (map parse-element footer))
-     (fn [net] (.build net))]))
+        footer (second body-footer)
+        header-transducer (apply comp (map parse-element header))
+        layers-transducer (apply comp (reverse (parse-body body)))
+        footer-transducer (apply comp (map parse-element footer))]
+    (fn [net]
+      (-> net
+          header-transducer
+          .list
+          layers-transducer
+          footer-transducer
+          .build))))
+          
+(defn config-network [edn-config]
+  (let [network-transducer (-> edn-config
+                               init-config-parse;;split config at layers index
+                               branch-config)]
+    (network-transducer (NeuralNetConfiguration$Builder.))))
 
-(defn network [edn-config]
-  (-> edn-config
-      init-config-parse;;split config at layers index
-      branch-config
-      ((fn [config] (apply comp config)))))
-
-(def netty (NeuralNetConfiguration$Builder.))
+(defn initialize-net!
+  ([net-config]
+   (initialize-net! net-config (list (ScoreIterationListener. 1))))
+  ([net-config listeners]
+   (let [net (MultiLayerNetwork. net-config)]
+     (.init net)
+     (.setListeners net listeners)
+     net)))
