@@ -19,11 +19,11 @@
 (def layer-config-test-2 [:optimization-algo :sgd 
                           :learning-rate 0.5
                           :momentum 0.9
-                          :layers [[:dense {:n-in 4 :n-out 4 :activation :relu}]
-                                   [:dense {:n-in 4 :n-out 4 :activation :relu}]
-                                   [:output {:n-in 4 :n-out 10 
+                          :layers [[:dense [:n-in 4 :n-out 4 :activation :relu]]
+                                   [:dense [:n-in 4 :n-out 4 :activation :relu]]
+                                   [:output [:n-in 4 :n-out 10 
                                              :activation :softmax 
-                                             :loss :negative-log-likelihood}]]
+                                             :loss :negative-log-likelihood]]]
                           :pretrain false
                           :backprop true])
                           
@@ -44,27 +44,27 @@
 (train-classification-net)
 
 (def autoencoder-config2
-  [:layers [[:rbm {:n-in 2000 :n-out 1000 :loss-function :kl-divergence}]
-            [:rbm {:n-in 1000 :n-out 500 :loss-function :kl-divergence}]
-            [:rbm {:n-in 500 :n-out 250 :loss-function :kl-divergence}]
-            [:rbm {:n-in 250 :n-out 100 :loss-function :kl-divergence}]
-            [:rbm {:n-in 100 :n-out 30 :loss-function :kl-divergence}]
-            [:rbm {:n-in 30 :n-out 100 :loss-function :kl-divergence}]
-            [:rbm {:n-in 100 :n-out 250 :loss-function :kl-divergence}]
-            [:rbm {:n-in 250 :n-out 500 :loss-function :kl-divergence}]
-            [:rbm {:n-in 500 :n-out 1000 :loss-function :kl-divergence}]
-            [:output {:n-in 1000 :n-out 2000 :loss :mse :activation :sigmoid}]]])
+  [:layers [[:rbm [:n-in 2000 :n-out 1000 :loss-function :kl-divergence]]
+            [:rbm [:n-in 1000 :n-out 500 :loss-function :kl-divergence]]
+            [:rbm [:n-in 500 :n-out 250 :loss-function :kl-divergence]]
+            [:rbm [:n-in 250 :n-out 100 :loss-function :kl-divergence]]
+            [:rbm [:n-in 100 :n-out 30 :loss-function :kl-divergence]]
+            [:rbm [:n-in 30 :n-out 100 :loss-function :kl-divergence]]
+            [:rbm [:n-in 100 :n-out 250 :loss-function :kl-divergence]]
+            [:rbm [:n-in 250 :n-out 500 :loss-function :kl-divergence]]
+            [:rbm [:n-in 500 :n-out 1000 :loss-function :kl-divergence]]
+            [:output [:n-in 1000 :n-out 2000 :loss :mse :activation :sigmoid]]]])
 
 (def test-encoder (ai/network-config autoencoder-config2))
 
 (deftest init-autoencoder
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-encoder))))
 
-(def iris-net-config2 [:layers [[:dense {:n-in 4 :n-out 10 :activation :relu}]
-                                [:dense {:n-in 10 :n-out 10 :activation :relu}]
-                                [:output {:n-in 10 :n-out 3
+(def iris-net-config2 [:layers [[:dense [:n-in 4 :n-out 10 :activation :relu]]
+                                [:dense [:n-in 10 :n-out 10 :activation :relu]]
+                                [:output [:n-in 10 :n-out 3
                                           :activation :softmax
-                                          :loss :negative-log-likelihood}]]])
+                                          :loss :negative-log-likelihood]]]])
 
 (def iris-net (ai/network-config iris-net-config2))
 
@@ -84,8 +84,8 @@
 (iris-train)
 
 (def rnn-config2
-  [:layers [[:dense {:n-in 1 :n-out 10 :activation :tanh}]
-            [:rnn-output {:n-out 10 :n-in 1 :activation :identity :loss :mse}]]])
+  [:layers [[:dense [:n-in 1 :n-out 10 :activation :tanh]]
+            [:rnn-output [:n-out 10 :n-in 1 :activation :identity :loss :mse]]]])
 
 (def test-rnn (ai/network-config rnn-config2))
 

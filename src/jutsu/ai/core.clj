@@ -59,7 +59,7 @@
         t0 (first tokens)]
     (str t0 (apply str (mapv clojure.string/capitalize (rest tokens))))))
 
-(defn get-layers-key-index [ks]
+(defn get-layers-index [ks]
   (let [index (.indexOf ks :layers)]
     (if (not= -1 index)
       (if (= index 0) index
@@ -69,7 +69,7 @@
       (throw (Exception. ":layers key not found in config")))))
 
 (defn init-config-parse [edn-config]
-  (let [layers-index (get-layers-key-index edn-config)
+  (let [layers-index (get-layers-index edn-config)
         split-config (split-at layers-index (partition 2 edn-config))]
     split-config))
 
@@ -129,12 +129,17 @@
                         config-methods
                         .build)))))
 
+(defn remove-loss [layer-config loss-index]
+  (if (zero? loss-index)
+    (drop 2 layer-config)
+    (concat (subvec layer-config 0 loss-index)
+      (subvec layer-config (+ loss-index 2) (count layer-config)))))
+
 (defn special-loss-layer [i layer-builder config]
-  (let [loss-fn (parse-arg (get config :loss))
-        config-methods (prepare-layer-config (dissoc config :loss))]
+  (let [loss-index (.indexOf config :loss)
+        loss-fn (parse-arg (nth config (inc loss-index)))
+        config-methods (prepare-layer-config (remove-loss config loss-index))]
     (fn [net]
-      ;(println net)
-      ;(println loss-fn)
       (.layer net i (-> (layer-builder loss-fn)
                         config-methods
                         .build)))))
@@ -145,7 +150,7 @@
 ;;need to create special case for output layer
 (defn parse-layer [i [layer-type layer-config]]
   (let [layer-builder (get layer-builders layer-type)]
-    (if (contains? layer-config :loss)
+    (if (not= -1 (.indexOf layer-config :loss))
       (special-loss-layer i layer-builder layer-config)
       (normal-layer i layer-builder layer-config))))
 
