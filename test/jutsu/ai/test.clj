@@ -1,19 +1,18 @@
 (ns jutsu.ai.test
   (:require [clojure.test :refer :all]
             [jutsu.ai.core :as ai]
-            [jutsu.matrix.core :as m]
-            [jutsu.ai.new-core :as nai]))
+            [jutsu.matrix.core :as m]))
 
-(def n (nai/config-network {:optimization-algo :sgd 
-                            :learning-rate 0.5
-                            :momentum 0.9
-                            :layers [[:dense  {:n-in 1 :n-out 2 :activation :tanh}]
-                                     [:dense  {:n-in 2 :n-out 2 :activation :tanh}]
-                                     [:output {:n-in 2 :n-out 1 
-                                               :activation :identity 
-                                               :loss :mse}]]  
-                            :pretrain false
-                            :backprop true}))
+(def n (ai/config-network {:optimization-algo :sgd 
+                           :learning-rate 0.5
+                           :momentum 0.9
+                           :layers [[:dense  {:n-in 1 :n-out 2 :activation :tanh}]
+                                    [:dense  {:n-in 2 :n-out 2 :activation :tanh}]
+                                    [:output {:n-in 2 :n-out 1 
+                                              :activation :identity 
+                                              :loss :mse}]]  
+                           :pretrain false
+                           :backprop true}))
 
 (println (.toJson n))
 
@@ -23,14 +22,14 @@
                                              :activation :softmax 
                                              :loss :negative-log-likelihood}]]})
                           
-(def test-net (nai/config-network layer-config-test-2))
+(def test-net (ai/config-network layer-config-test-2))
 
 (deftest init-classification-net
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-net))))
 
 (defn train-classification-net []
   (let [dataset-iterator (ai/classification-csv-iterator "classification_data.csv" 4 4 10)
-        network (nai/initialize-net! test-net)]
+        network (ai/initialize-net! test-net)]
     (-> network
         (ai/train-net! 10 dataset-iterator)
         (ai/save-model "classnet.zip"))
@@ -51,7 +50,7 @@
             [:rbm {:n-in 500 :n-out 1000 :loss-function :kl-divergence}]
             [:output {:n-in 1000 :n-out 2000 :loss :mse :activation :sigmoid}]]})
 
-(def test-encoder (nai/config-network autoencoder-config2))
+(def test-encoder (ai/config-network autoencoder-config2))
 
 (deftest init-autoencoder
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-encoder))))
@@ -62,11 +61,11 @@
                                           :activation :softmax
                                           :loss :negative-log-likelihood}]]})
 
-(def iris-net (nai/config-network iris-net-config2))
+(def iris-net (ai/config-network iris-net-config2))
 
 (defn iris-train []
   (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)
-        network (nai/initialize-net! iris-net)]
+        network (ai/initialize-net! iris-net)]
     (-> network
         (ai/train-net! 200 iris-iterator)
         (ai/save-model "iris-model"))
@@ -83,7 +82,7 @@
   {:layers [[:dense {:n-in 1 :n-out 10 :activation :tanh}]
             [:rnn-output {:n-out 10 :n-in 1 :activation :identity :loss :mse}]]})
 
-(def test-rnn (nai/config-network rnn-config2))
+(def test-rnn (ai/config-network rnn-config2))
 
 (deftest init-rnn
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-rnn))))

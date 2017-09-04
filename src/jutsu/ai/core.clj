@@ -53,55 +53,133 @@
     (.initialize rr (FileSplit. path))
     (SequenceRecordReaderDataSetIterator. rr batch-size num-possible-labels label-index)))
 
-(def activation-options
-  {:relu (Activation/RELU)
-   :identity (Activation/IDENTITY)
-   :softmax (Activation/SOFTMAX)
+(defn translate-to-java [key]
+  (let [tokens (clojure.string/split (name key) #"-")
+        t0 (first tokens)]
+    (str t0 (apply str (mapv clojure.string/capitalize (rest tokens))))))
+
+(defn get-layers-key-index [ks]
+  (let [index (.indexOf ks :layers)]
+    (if (not= -1 index) index
+      ;(if (> index 0) index
+      ;  (throw (Exception. ":layers key cannot be at zero index"))
+      (throw (Exception. ":layers key not found in config")))))
+
+(defn init-config-parse [edn-config]
+  (let [ks (keys edn-config)
+        layers-index (get-layers-key-index ks)]
+    (split-at layers-index (map
+                             (fn [k] [k 
+                                      (get edn-config k)])
+                             ks))))
+
+(def options
+  {:sgd (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
    :tanh (Activation/TANH)
+   :identity (Activation/IDENTITY)
+   :mse (LossFunctions$LossFunction/MSE)
+   :negative-log-likelihood (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
+   :kl-divergence (LossFunctions$LossFunction/KL_DIVERGENCE)
+   :relu (Activation/RELU)
+   :softmax (Activation/SOFTMAX)
    :sigmoid (Activation/SIGMOID)})
 
+(defn get-option [arg]
+  (let [option (get options arg)]
+    (if (nil? option)
+      (throw (Exception. (str arg " is not a supported justu.ai option")))
+      option)))
+
+(defn parse-arg [arg]
+  (if (keyword? arg) (get-option arg) arg))
+
+;;from https://en.wikibooks.org/wiki/Clojure_Programming/Examples#Invoking_Java_method_through_method_name_as_a_String
+(defn str-invoke [instance method-str & args]
+            (clojure.lang.Reflector/invokeInstanceMethod 
+                instance 
+                method-str 
+                (to-array args)))
+
+(defn parse-element [el]
+  (let [method (translate-to-java (first el))
+        arg (parse-arg (second el))]
+    (fn [net]
+      (str-invoke net method arg))))
+
 (def layer-builders
-  {:default (fn [] (DenseLayer$Builder.))
+  {:dense (fn [] (DenseLayer$Builder.))
    :rbm (fn [] (RBM$Builder.))
-   :graves-lstm (fn [] (GravesLSTM$Builder.))})
+   :graves-lstm (fn [] (GravesLSTM$Builder.))
+   :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
+   :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))})
 
-(def loss-functions
-  {:mse (LossFunctions$LossFunction/MSE)
-   :negative-log-likelihood (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
-   :kl-divergence (LossFunctions$LossFunction/KL_DIVERGENCE)})
+(defn prepare-layer-config [layer-config]
+  (->> (map (fn [k] [k (get layer-config k)]) (keys layer-config))
+       (map parse-element)
+       (apply comp)))
 
-(def optimization-algos
-  {:sgd (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
-   :stochastic-gradient-descent (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
-   :line-gradient-descent (OptimizationAlgorithm/LINE_GRADIENT_DESCENT)})
+(defn normal-layer [i layer-builder config]
+  (let [config-methods (prepare-layer-config config)]
+    (fn [net]
+      (.layer net i (-> (layer-builder)
+                        config-methods
+                        .build)))))
 
-(defn default-regression-options []
-  {:seed 12345
-   :iterations 1
-   :optimization-algo :sgd
-   :learning-rate 0.01
-   :weight-init (WeightInit/XAVIER)
-   :updater (Updater/NESTEROVS)
-   :momentum 0.9
-   :activation (Activation/RELU)
-   :pretrain false
-   :backprop true
-   :num-hidden-nodes 50
-   :layer-builder :default})
+(defn special-loss-layer [i layer-builder config]
+  (let [loss-fn (parse-arg (get config :loss))
+        config-methods (prepare-layer-config (dissoc config :loss))]
+    (fn [net]
+      ;(println net)
+      ;(println loss-fn)
+      (.layer net i (-> (layer-builder loss-fn)
+                        config-methods
+                        .build)))))
+    
+;;produce a transducer to call on the layer builder
+;;layers with loss can be special
+;;look for loss keyword
+;;need to create special case for output layer
+(defn parse-layer [i [layer-type layer-config]]
+  (let [layer-builder (get layer-builders layer-type)]
+    (if (contains? layer-config :loss)
+      (special-loss-layer i layer-builder layer-config)
+      (normal-layer i layer-builder layer-config))))
 
-(defn default-classification-options []
-  {:seed 12345
-   :optimization-algo :sgd
-   :iterations 1
-   :learning-rate 0.006
-   :updater (Updater/NESTEROVS)
-   :momentum 0.9
-   :regularization true
-   :l2 1e-4
-   :weight-init (WeightInit/XAVIER)
-   :pretrain false
-   :backprop true
-   :layer-builder :default})
+(defn parse-body [body]
+  (doall (map-indexed (fn [i layer] (parse-layer i layer)) body)))
+
+;;Order of header-body-footer matters
+;;builds a transducer of instance methods to call on the neural net object
+(defn branch-config [parsed-config]
+  (let [header (first parsed-config)
+        body-footer (split-at 1 (second parsed-config))
+        body (second (ffirst body-footer))
+        footer (second body-footer)
+        header-transducer (apply comp (map parse-element header))
+        layers-transducer (apply comp (reverse (parse-body body)))
+        footer-transducer (apply comp (map parse-element footer))]
+    (fn [net]
+      (-> net
+          header-transducer
+          .list
+          layers-transducer
+          footer-transducer
+          .build))))
+          
+(defn config-network [edn-config]
+  (let [network-transducer (-> edn-config
+                               init-config-parse;;split config at layers index
+                               branch-config)]
+    (network-transducer (NeuralNetConfiguration$Builder.))))
+
+(defn initialize-net!
+  ([net-config]
+   (initialize-net! net-config (list (ScoreIterationListener. 1))))
+  ([net-config listeners]
+   (let [net (MultiLayerNetwork. net-config)]
+     (.init net)
+     (.setListeners net listeners)
+     net)))
 
 ;;set true for online learning
 (defn save-model 
@@ -113,91 +191,11 @@
 (defn load-model [filename]
    (ModelSerializer/restoreMultiLayerNetwork filename))
 
-(defn initialize-net!
-  ([net] (initialize-net! net (list (ScoreIterationListener. 1))))
-  ([net listeners]
-   (.init net)
-   (.setListeners net listeners)
-   net))
-
 (defn train-net! [net epochs dataset-iterator]
   (doseq [n (range 0 epochs)]
     (.reset dataset-iterator)
     (.fit net dataset-iterator))
   net)
-
-;;Should add an argument for loss function
-(defn parse-shorthand [topology]
-  (map (fn [layer]
-         {:in (nth layer 0)
-          :out (nth layer 1)
-          :activation (nth layer 2)
-          :loss (get layer 3)});;using get instead of nth makes it optional
-    topology))
-
-;;throw error if now activation key
-(defn interpret-layer [i layer topo-count options-map]
-    (fn [net]
-      (-> net
-        (.layer i 
-          (-> (if (= i topo-count)
-                  (if (:recurrent layer)
-                    (RnnOutputLayer$Builder. (get loss-functions
-                                               (if (nil? (:loss layer))
-                                                 :mse
-                                                 (:loss layer))))
-                    (OutputLayer$Builder. (get loss-functions 
-                                            (if (nil? (:loss layer))
-                                              :mse
-                                              (:loss layer)))))
-                  ((get layer-builders (:layer-builder options-map))))
-              (.nIn (:in layer))
-              (.nOut (:out layer))
-              ((fn [layer-config]
-                (if (and (:loss layer) (not= i topo-count))
-                 (.lossFunction layer-config (get loss-functions (:loss layer))))
-                layer-config))
-              ((fn [layer-config]
-                 (if (and (:dropout layer) (not= i topo-count))
-                   (.dropOut layer-config (:dropout layer)))
-                 layer-config))
-              ((fn [layer-config]
-                (when-let [activation (:activation layer)]
-                 (.activation layer-config 
-                  (get activation-options (:activation layer))))
-                layer-config));should emit error when cant find function
-              (.build))))))
-
-;;pass in shorthand with vectors
-;;Returns a vector of functions to be called on the net
-(defn parse-topology [topology options-map]
-  (let [topo (if (= clojure.lang.PersistentVector (class (first topology)))
-               (parse-shorthand topology)
-               topology)
-        topo-count (count topo)
-        proper-topo (doall (map-indexed (fn [i layer]
-                                          (interpret-layer i layer (dec topo-count) options-map)) topo))]
-    proper-topo))
-
-(defn initialize-layers [net parsed-topology]
-  ((apply comp parsed-topology) net))
-
-(defn network [topology options-map]
-  (let [parsed-topology (parse-topology topology options-map)]
-    (-> (NeuralNetConfiguration$Builder.)
-      (.seed (:seed options-map))
-      (.iterations (:iterations options-map))
-      (.optimizationAlgo (get optimization-algos (:optimization-algo options-map)))
-      (.learningRate (:learning-rate options-map))
-      (.weightInit (:weight-init options-map))
-      (.updater (:updater options-map))
-      (.momentum (:momentum options-map))
-      (.list)
-      (initialize-layers parsed-topology)
-      (.pretrain (:pretrain options-map))
-      (.backprop (:backprop options-map))
-      (.build)
-      (MultiLayerNetwork.))))
 
 (defn output
   ([net data] (.output net data false))
