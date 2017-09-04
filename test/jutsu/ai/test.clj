@@ -3,7 +3,7 @@
             [jutsu.ai.core :as ai]
             [jutsu.matrix.core :as m]))
 
-(def n (ai/network-config {:optimization-algo :sgd 
+(def n (ai/network-config [:optimization-algo :sgd 
                            :learning-rate 0.5
                            :momentum 0.9
                            :layers [[:dense  {:n-in 1 :n-out 2 :activation :tanh}]
@@ -12,15 +12,20 @@
                                               :activation :identity 
                                               :loss :mse}]]  
                            :pretrain false
-                           :backprop true}))
+                           :backprop true]))
 
 (println (.toJson n))
 
-(def layer-config-test-2 {:layers [[:dense {:n-in 4 :n-out 4 :activation :relu}]
+(def layer-config-test-2 {:optimization-algo :sgd 
+                          :learning-rate 0.5
+                          :momentum 0.9
+                          :layers [[:dense {:n-in 4 :n-out 4 :activation :relu}]
                                    [:dense {:n-in 4 :n-out 4 :activation :relu}]
                                    [:output {:n-in 4 :n-out 10 
                                              :activation :softmax 
-                                             :loss :negative-log-likelihood}]]})
+                                             :loss :negative-log-likelihood}]]
+                          :pretrain false
+                          :backprop true})
                           
 (def test-net (ai/network-config layer-config-test-2))
 

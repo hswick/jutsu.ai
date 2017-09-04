@@ -19,7 +19,8 @@
            [org.deeplearning4j.eval Evaluation RegressionEvaluation]
            [org.deeplearning4j.nn.conf.layers RnnOutputLayer$Builder]
            [org.datavec.api.records.reader.impl.csv CSVSequenceRecordReader]
-           [org.deeplearning4j.datasets.datavec SequenceRecordReaderDataSetIterator]))
+           [org.deeplearning4j.datasets.datavec SequenceRecordReaderDataSetIterator]
+           [org.deeplearning4j.nn.conf BackpropType]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -60,18 +61,17 @@
 
 (defn get-layers-key-index [ks]
   (let [index (.indexOf ks :layers)]
-    (if (not= -1 index) index
-      ;(if (> index 0) index
-      ;  (throw (Exception. ":layers key cannot be at zero index"))
+    (if (not= -1 index)
+      (if (= index 0) index
+        (if (= index 1) 0
+          (if (= index 2) 1
+            (/ index 2))))
       (throw (Exception. ":layers key not found in config")))))
 
 (defn init-config-parse [edn-config]
-  (let [ks (keys edn-config)
-        layers-index (get-layers-key-index ks)]
-    (split-at layers-index (map
-                             (fn [k] [k 
-                                      (get edn-config k)])
-                             ks))))
+  (let [layers-index (get-layers-key-index edn-config)
+        split-config (split-at layers-index (partition 2 edn-config))]
+    split-config))
 
 (def options
   {:sgd (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
@@ -82,7 +82,11 @@
    :kl-divergence (LossFunctions$LossFunction/KL_DIVERGENCE)
    :relu (Activation/RELU)
    :softmax (Activation/SOFTMAX)
-   :sigmoid (Activation/SIGMOID)})
+   :sigmoid (Activation/SIGMOID)
+   :xavier (WeightInit/XAVIER)
+   :rmsprop (Updater/RMSPROP)
+   :mcxent (LossFunctions$LossFunction/MCXENT)
+   :truncated-bptt (BackpropType/TruncatedBPTT)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
