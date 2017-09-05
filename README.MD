@@ -36,11 +36,6 @@ If you have any suggestions or fixes please feel free to submit a PR or post an 
   (println (ai/evaluate network iris-iterator))))
   
 (iris-train)
-    
-(->> (m/matrix [7.1 3.0 5.9 2.1])
-	(ai/output iris-net)
-	(m/max-index)
-	(println))
 ```
 # Dev
 
