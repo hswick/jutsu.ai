@@ -14,6 +14,14 @@ If you have any suggestions or fixes please feel free to submit a PR or post an 
 
 # Usage
 
+Install jutsu.ai by including this in your project dependencies:
+
+```clojure
+[hswick/jutsu.ai "0.0.7"]
+```
+
+Here is a toy example demonstrating classifying the well known iris dataset.
+
 ```clojure
 ;;Example configuration of a simple multilayer feedforward neural network architecture
 ;;classifying the iris dataset.
