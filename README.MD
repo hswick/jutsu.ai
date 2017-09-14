@@ -29,7 +29,7 @@ Here is a toy example demonstrating classifying the well known iris dataset.
 				[:dense [:n-in 10 :n-out 10 :activation :relu]]
 				[:output [:n-in 10 :n-out 3
 					  :activation :softmax
-					  :loss :negative-log-likelihood}]]])
+					  :loss :negative-log-likelihood]]])
 
 (def iris-net (-> iris-net-config
 		network-config
