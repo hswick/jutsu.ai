@@ -8,9 +8,8 @@
                            :momentum 0.9
                            :layers [[:dense  [:n-in 1 :n-out 2 :activation :tanh]]
                                     [:dense  [:n-in 2 :n-out 2 :activation :tanh]]
-                                    [:output [:n-in 2 :n-out 1 
-                                              :activation :identity 
-                                              :loss :mse]]]  
+                                    [:output :mse [:n-in 2 :n-out 1 
+                                                   :activation :identity]]]  
                            :pretrain false
                            :backprop true]))
 
@@ -21,9 +20,8 @@
                           :momentum 0.9
                           :layers [[:dense [:n-in 4 :n-out 4 :activation :relu]]
                                    [:dense [:n-in 4 :n-out 4 :activation :relu]]
-                                   [:output [:n-in 4 :n-out 10 
-                                             :activation :softmax 
-                                             :loss :negative-log-likelihood]]]
+                                   [:output :negative-log-likelihood [:n-in 4 :n-out 10 
+                                                                      :activation :softmax]]]
                           :pretrain false
                           :backprop true])
                           
@@ -53,7 +51,7 @@
             [:rbm [:n-in 100 :n-out 250 :loss-function :kl-divergence]]
             [:rbm [:n-in 250 :n-out 500 :loss-function :kl-divergence]]
             [:rbm [:n-in 500 :n-out 1000 :loss-function :kl-divergence]]
-            [:output [:n-in 1000 :n-out 2000 :loss :mse :activation :sigmoid]]]])
+            [:output :mse [:n-in 1000 :n-out 2000 :activation :sigmoid]]]])
 
 (def test-encoder (ai/network-config autoencoder-config2))
 
@@ -62,9 +60,8 @@
 
 (def iris-net-config2 [:layers [[:dense [:n-in 4 :n-out 10 :activation :relu]]
                                 [:dense [:n-in 10 :n-out 10 :activation :relu]]
-                                [:output [:n-in 10 :n-out 3
-                                          :activation :softmax
-                                          :loss :negative-log-likelihood]]]])
+                                [:output :negative-log-likelihood [:n-in 10 :n-out 3
+                                                                   :activation :softmax]]]])
 
 (def iris-net (ai/network-config iris-net-config2))
 
@@ -85,7 +82,7 @@
 
 (def rnn-config2
   [:layers [[:dense [:n-in 1 :n-out 10 :activation :tanh]]
-            [:rnn-output [:n-out 10 :n-in 1 :activation :identity :loss :mse]]]])
+            [:rnn-output :mse [:n-out 10 :n-in 1 :activation :identity]]]])
 
 (def test-rnn (ai/network-config rnn-config2))
 
@@ -105,6 +102,6 @@
    :optimization-algo :sgd
    :updater :nesterovs
    :layers [[:dense [:n-in 1 :n-out 10 :activation :tanh]]
-            [:rnn-output [:n-out 10 :n-in 1 :activation :identity :loss :mse]]]])
+            [:rnn-output :mse [:n-out 10 :n-in 1 :activation :identity]]]])
 
 (ai/network-config cnn-config)

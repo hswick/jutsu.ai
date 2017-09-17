@@ -132,30 +132,20 @@
                         config-methods
                         .build)))))
 
-(defn remove-loss [layer-config loss-index]
-  (if (zero? loss-index)
-    (drop 2 layer-config)
-    (concat (subvec layer-config 0 loss-index)
-      (subvec layer-config (+ loss-index 2) (count layer-config)))))
-
-(defn special-loss-layer [i layer-builder config]
-  (let [loss-index (.indexOf config :loss)
-        loss-fn (parse-arg (nth config (inc loss-index)))
-        config-methods (prepare-layer-config (remove-loss config loss-index))]
+(defn special-layer [i layer-builder config]
+  (let [config-methods (prepare-layer-config (last config))]
     (fn [net]
-      (.layer net i (-> (apply layer-builder [loss-fn])
+      (.layer net i (-> (apply layer-builder (map parse-arg (drop-last config)))
                         config-methods
                         .build)))))
-    
-;;produce a transducer to call on the layer builder
-;;layers with loss can be special
-;;look for loss keyword
-;;need to create special case for output layer
-(defn parse-layer [i [layer-type layer-config]]
-  (let [layer-builder (get layer-builders layer-type)]
-    (if (not= -1 (.indexOf layer-config :loss))
-      (special-loss-layer i layer-builder layer-config)
-      (normal-layer i layer-builder layer-config))))
+
+(defn parse-layer [i layer]
+  (let [layer-type (first layer)
+        layer-config (rest layer)
+        layer-builder (get layer-builders layer-type)]
+    (if (= 1 (count layer-config))
+      (normal-layer i layer-builder (first layer-config))
+      (special-layer i layer-builder layer-config))))
 
 (defn parse-body [body]
   (doall (map-indexed (fn [i layer] (parse-layer i layer)) body)))
