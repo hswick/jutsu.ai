@@ -91,3 +91,20 @@
 
 (deftest init-rnn
   (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-rnn))))
+
+;;From https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/convolution/LenetMnistExample.java
+(def cnn-config
+  [:seed 123
+   :iterations 1
+   :regularization true
+   :l2 0.0005
+   :learning-rate 0.01
+   :learning-rate-decay-policy :learning-rate-policy-schedule
+   :learning-rate-schedule {0 0.01 1000 0.005 3000 0.001}
+   :weight-init :xavier
+   :optimization-algo :sgd
+   :updater :nesterovs
+   :layers [[:dense [:n-in 1 :n-out 10 :activation :tanh]]
+            [:rnn-output [:n-out 10 :n-in 1 :activation :identity :loss :mse]]]])
+
+(ai/network-config cnn-config)

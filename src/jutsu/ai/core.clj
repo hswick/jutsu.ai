@@ -20,7 +20,8 @@
            [org.deeplearning4j.nn.conf.layers RnnOutputLayer$Builder]
            [org.datavec.api.records.reader.impl.csv CSVSequenceRecordReader]
            [org.deeplearning4j.datasets.datavec SequenceRecordReaderDataSetIterator]
-           [org.deeplearning4j.nn.conf BackpropType]))
+           [org.deeplearning4j.nn.conf BackpropType]
+           [org.deeplearning4j.nn.conf LearningRatePolicy]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -86,7 +87,9 @@
    :xavier (WeightInit/XAVIER)
    :rmsprop (Updater/RMSPROP)
    :mcxent (LossFunctions$LossFunction/MCXENT)
-   :truncated-bptt (BackpropType/TruncatedBPTT)})
+   :truncated-bptt (BackpropType/TruncatedBPTT)
+   :learning-rate-policy-schedule (LearningRatePolicy/Schedule)
+   :nesterovs (Updater/NESTEROVS)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
