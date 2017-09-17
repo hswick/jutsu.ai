@@ -143,7 +143,7 @@
         loss-fn (parse-arg (nth config (inc loss-index)))
         config-methods (prepare-layer-config (remove-loss config loss-index))]
     (fn [net]
-      (.layer net i (-> (layer-builder loss-fn)
+      (.layer net i (-> (apply layer-builder [loss-fn])
                         config-methods
                         .build)))))
     
