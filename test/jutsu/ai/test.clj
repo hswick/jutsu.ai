@@ -111,4 +111,7 @@
    :backprop true
    :pretrain false])
 
-(ai/network-config cnn-config)
+(def test-cnn (ai/network-config cnn-config))
+
+(deftest init-cnn
+  (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-cnn))))
