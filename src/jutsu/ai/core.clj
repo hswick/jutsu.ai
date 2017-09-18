@@ -177,17 +177,17 @@
           footer-transducer
           .build))))
           
-(defn network-config [edn-config]
+(defn network [edn-config]
   (let [network-transducer (-> edn-config
                                init-config-parse;;split config at layers index
                                branch-config)]
-    (network-transducer (NeuralNetConfiguration$Builder.))))
+    (MultiLayerNetwork. (network-transducer (NeuralNetConfiguration$Builder.)))))
 
 (defn initialize-net
   ([net-config]
    (initialize-net net-config (list (ScoreIterationListener. 1))))
   ([net-config listeners]
-   (let [net (MultiLayerNetwork. net-config)]
+   (let [net net-config]
      (.init net)
      (.setListeners net listeners)
      net)))

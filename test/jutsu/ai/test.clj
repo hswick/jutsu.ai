@@ -3,7 +3,7 @@
             [jutsu.ai.core :as ai]
             [jutsu.matrix.core :as m]))
 
-(def n (ai/network-config [:optimization-algo :sgd 
+(def n (ai/network [:optimization-algo :sgd 
                            :learning-rate 0.5
                            :momentum 0.9
                            :layers [[:dense  [:n-in 1 :n-out 2 :activation :tanh]]
@@ -12,8 +12,6 @@
                                                    :activation :identity]]]  
                            :pretrain false
                            :backprop true]))
-
-(println (.toJson n))
 
 (def layer-config-test-2 [:optimization-algo :sgd 
                           :learning-rate 0.5
@@ -25,10 +23,10 @@
                           :pretrain false
                           :backprop true])
                           
-(def test-net (ai/network-config layer-config-test-2))
+(def test-net (ai/network layer-config-test-2))
 
 (deftest init-classification-net
-  (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-net))))
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-net))))
 
 (defn train-classification-net []
   (let [dataset-iterator (ai/classification-csv-iterator "classification_data.csv" 4 4 10)
@@ -53,21 +51,21 @@
             [:rbm [:n-in 500 :n-out 1000 :loss-function :kl-divergence]]
             [:output :mse [:n-in 1000 :n-out 2000 :activation :sigmoid]]]])
 
-(def test-encoder (ai/network-config autoencoder-config2))
+(def test-encoder (ai/network autoencoder-config2))
 
 (deftest init-autoencoder
-  (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-encoder))))
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-encoder))))
 
 (def iris-net-config2 [:layers [[:dense [:n-in 4 :n-out 10 :activation :relu]]
                                 [:dense [:n-in 10 :n-out 10 :activation :relu]]
                                 [:output :negative-log-likelihood [:n-in 10 :n-out 3
                                                                    :activation :softmax]]]])
 
-(def iris-net (ai/network-config iris-net-config2))
+(def iris-net (ai/network iris-net-config2))
 
 (defn iris-train []
   (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)
-        network (ai/initialize-net iris-net (list stats-listener))]
+        network (ai/initialize-net iris-net)]
     (-> network
         (ai/train-net! 200 iris-iterator)
         (ai/save-model "iris-model"))
@@ -84,10 +82,10 @@
   [:layers [[:dense [:n-in 1 :n-out 10 :activation :tanh]]
             [:rnn-output :mse [:n-out 10 :n-in 1 :activation :identity]]]])
 
-(def test-rnn (ai/network-config rnn-config2))
+(def test-rnn (ai/network rnn-config2))
 
 (deftest init-rnn
-  (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-rnn))))
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-rnn))))
 
 ;;From https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/convolution/LenetMnistExample.java
 (def cnn-config
@@ -111,7 +109,7 @@
    :backprop true
    :pretrain false])
 
-(def test-cnn (ai/network-config cnn-config))
+(def test-cnn (ai/network cnn-config))
 
 (deftest init-cnn
-  (is (= org.deeplearning4j.nn.conf.MultiLayerConfiguration (class test-cnn))))
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-cnn))))
