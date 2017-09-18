@@ -1,7 +1,8 @@
 (ns jutsu.ai.test
   (:require [clojure.test :refer :all]
             [jutsu.ai.core :as ai]
-            [jutsu.matrix.core :as m]))
+            [jutsu.matrix.core :as m])
+  (:import [org.deeplearning4j.nn.conf.inputs InputType]))
 
 (def n (ai/network-config [:optimization-algo :sgd 
                            :learning-rate 0.5
@@ -101,7 +102,14 @@
    :weight-init :xavier
    :optimization-algo :sgd
    :updater :nesterovs
-   :layers [[:convolution (int-array [5 5]) [:n-in 1 :stride (int-array [1 1]) :n-out 20 :activation :identity]]
-            [:output :negative-log-likelihood [:n-out 20 :n-in 1 :activation :identity]]]])
+   :layers [[:convolution (int-array [5 5]) [:n-in 1 :stride [1 1] :n-out 20 :activation :identity]]
+            [:sub-sampling :pooling-type-max [:kernel-size (int-array [2 2]) :stride (int-array [2 2])]]
+            [:convolution (int-array [5 5]) [:stride (int-array [1 1]) :n-out 50 :activation :identity]]
+            [:sub-sampling :pooling-type-max [:kernel-size (int-array [2 2]) :stride (int-array [2 2])]]
+            [:dense [:activation :relu :n-out 500]]
+            [:output :negative-log-likelihood [:n-out 20 :activation :softmax]]]
+   :set-input-type (InputType/convolutionalFlat 28 28 1)
+   :backprop true
+   :pretrain false])
 
 (ai/network-config cnn-config)

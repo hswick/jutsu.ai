@@ -22,7 +22,9 @@
            [org.deeplearning4j.datasets.datavec SequenceRecordReaderDataSetIterator]
            [org.deeplearning4j.nn.conf BackpropType]
            [org.deeplearning4j.nn.conf LearningRatePolicy]
-           [org.deeplearning4j.nn.conf.layers ConvolutionLayer$Builder]))
+           [org.deeplearning4j.nn.conf.layers ConvolutionLayer$Builder]
+           [org.deeplearning4j.nn.conf.layers SubsamplingLayer$Builder SubsamplingLayer$PoolingType]
+           [org.deeplearning4j.nn.conf.inputs InputType]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -90,7 +92,8 @@
    :mcxent (LossFunctions$LossFunction/MCXENT)
    :truncated-bptt (BackpropType/TruncatedBPTT)
    :learning-rate-policy-schedule (LearningRatePolicy/Schedule)
-   :nesterovs (Updater/NESTEROVS)})
+   :nesterovs (Updater/NESTEROVS)
+   :pooling-type-max (SubsamplingLayer$PoolingType/MAX)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
@@ -113,7 +116,7 @@
         arg (parse-arg (second el))]
     (if (= clojure.lang.PersistentVector (class arg))
       (fn [net]
-        (apply (partial str-invoke net method) arg))
+       (str-invoke net method (int-array arg)))
       (fn [net]
         (str-invoke net method arg)))))
 
@@ -123,7 +126,8 @@
    :graves-lstm (fn [] (GravesLSTM$Builder.))
    :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
    :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))
-   :convolution (fn [kernel-size] (ConvolutionLayer$Builder. kernel-size))})
+   :convolution (fn [kernel-size] (ConvolutionLayer$Builder. kernel-size))
+   :sub-sampling (fn [pooling-type] (SubsamplingLayer$Builder. pooling-type))})
 
 (defn prepare-layer-config [layer-config]
   (->> (partition 2 layer-config)
