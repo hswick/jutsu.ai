@@ -126,7 +126,7 @@
    :graves-lstm (fn [] (GravesLSTM$Builder.))
    :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
    :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))
-   :convolution (fn [kernel-size] (ConvolutionLayer$Builder. kernel-size))
+   :convolution (fn [kernel-size] (ConvolutionLayer$Builder. (int-array kernel-size)))
    :sub-sampling (fn [pooling-type] (SubsamplingLayer$Builder. pooling-type))})
 
 (defn prepare-layer-config [layer-config]

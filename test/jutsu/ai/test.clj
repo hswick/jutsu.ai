@@ -102,10 +102,10 @@
    :weight-init :xavier
    :optimization-algo :sgd
    :updater :nesterovs
-   :layers [[:convolution (int-array [5 5]) [:n-in 1 :stride [1 1] :n-out 20 :activation :identity]]
-            [:sub-sampling :pooling-type-max [:kernel-size (int-array [2 2]) :stride (int-array [2 2])]]
-            [:convolution (int-array [5 5]) [:stride (int-array [1 1]) :n-out 50 :activation :identity]]
-            [:sub-sampling :pooling-type-max [:kernel-size (int-array [2 2]) :stride (int-array [2 2])]]
+   :layers [[:convolution [5 5] [:n-in 1 :stride [1 1] :n-out 20 :activation :identity]]
+            [:sub-sampling :pooling-type-max [:kernel-size [2 2] :stride [2 2]]]
+            [:convolution [5 5] [:stride [1 1] :n-out 50 :activation :identity]]
+            [:sub-sampling :pooling-type-max [:kernel-size [2 2] :stride [2 2]]]
             [:dense [:activation :relu :n-out 500]]
             [:output :negative-log-likelihood [:n-out 20 :activation :softmax]]]
    :set-input-type (InputType/convolutionalFlat 28 28 1)
