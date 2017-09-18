@@ -101,7 +101,7 @@
    :weight-init :xavier
    :optimization-algo :sgd
    :updater :nesterovs
-   :layers [[:dense [:n-in 1 :n-out 10 :activation :tanh]]
-            [:rnn-output :mse [:n-out 10 :n-in 1 :activation :identity]]]])
+   :layers [[:convolution (int-array [5 5]) [:n-in 1 :stride (int-array [1 1]) :n-out 20 :activation :identity]]
+            [:output :negative-log-likelihood [:n-out 20 :n-in 1 :activation :identity]]]])
 
 (ai/network-config cnn-config)

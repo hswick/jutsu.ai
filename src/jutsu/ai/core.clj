@@ -21,7 +21,8 @@
            [org.datavec.api.records.reader.impl.csv CSVSequenceRecordReader]
            [org.deeplearning4j.datasets.datavec SequenceRecordReaderDataSetIterator]
            [org.deeplearning4j.nn.conf BackpropType]
-           [org.deeplearning4j.nn.conf LearningRatePolicy]))
+           [org.deeplearning4j.nn.conf LearningRatePolicy]
+           [org.deeplearning4j.nn.conf.layers ConvolutionLayer$Builder]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -110,15 +111,19 @@
 (defn parse-element [el]
   (let [method (translate-to-java (first el))
         arg (parse-arg (second el))]
-    (fn [net]
-      (str-invoke net method arg))))
+    (if (= clojure.lang.PersistentVector (class arg))
+      (fn [net]
+        (apply (partial str-invoke net method) arg))
+      (fn [net]
+        (str-invoke net method arg)))))
 
 (def layer-builders
   {:dense (fn [] (DenseLayer$Builder.))
    :rbm (fn [] (RBM$Builder.))
    :graves-lstm (fn [] (GravesLSTM$Builder.))
    :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
-   :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))})
+   :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))
+   :convolution (fn [kernel-size] (ConvolutionLayer$Builder. kernel-size))})
 
 (defn prepare-layer-config [layer-config]
   (->> (partition 2 layer-config)
