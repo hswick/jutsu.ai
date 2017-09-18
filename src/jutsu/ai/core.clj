@@ -217,3 +217,6 @@
 
 (defn evaluate-regression [net dataset-iterator]
   (.stats (.evaluateRegression net dataset-iterator)))
+
+(defn convolutional-flat [arg1 arg2 arg3]
+  (InputType/convolutionalFlat arg1 arg2 arg3))

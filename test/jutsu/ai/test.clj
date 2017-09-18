@@ -1,8 +1,7 @@
 (ns jutsu.ai.test
   (:require [clojure.test :refer :all]
             [jutsu.ai.core :as ai]
-            [jutsu.matrix.core :as m])
-  (:import [org.deeplearning4j.nn.conf.inputs InputType]))
+            [jutsu.matrix.core :as m]))
 
 (def n (ai/network-config [:optimization-algo :sgd 
                            :learning-rate 0.5
@@ -108,7 +107,7 @@
             [:sub-sampling :pooling-type-max [:kernel-size [2 2] :stride [2 2]]]
             [:dense [:activation :relu :n-out 500]]
             [:output :negative-log-likelihood [:n-out 20 :activation :softmax]]]
-   :set-input-type (InputType/convolutionalFlat 28 28 1)
+   :set-input-type (ai/convolutional-flat 28 28 1)
    :backprop true
    :pretrain false])
 
