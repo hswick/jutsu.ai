@@ -1,30 +1,36 @@
 (ns jutsu.ai.core           
   (:import [org.datavec.api.split FileSplit]
            [org.datavec.api.util ClassPathResource]
-           [org.deeplearning4j.datasets.datavec RecordReaderDataSetIterator]
-           [org.datavec.api.records.reader.impl.csv CSVRecordReader]
+           [org.deeplearning4j.datasets.datavec 
+            RecordReaderDataSetIterator
+            SequenceRecordReaderDataSetIterator]
+           [org.datavec.api.records.reader.impl.csv 
+            CSVRecordReader
+            CSVSequenceRecordReader]
            [org.deeplearning4j.nn.conf NeuralNetConfiguration$Builder]
            [org.deeplearning4j.nn.api OptimizationAlgorithm]
            [org.deeplearning4j.nn.weights WeightInit]
            [org.deeplearning4j.nn.conf Updater]
-           [org.deeplearning4j.nn.conf.layers DenseLayer$Builder]
            [org.nd4j.linalg.activations Activation]
-           [org.deeplearning4j.nn.conf.layers OutputLayer$Builder]
            [org.nd4j.linalg.lossfunctions LossFunctions$LossFunction]
            [org.deeplearning4j.optimize.listeners ScoreIterationListener]
            [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
            [org.deeplearning4j.util ModelSerializer]
-           [org.deeplearning4j.nn.conf.layers RBM$Builder]
-           [org.deeplearning4j.nn.conf.layers GravesLSTM$Builder]
            [org.deeplearning4j.eval Evaluation RegressionEvaluation]
-           [org.deeplearning4j.nn.conf.layers RnnOutputLayer$Builder]
-           [org.datavec.api.records.reader.impl.csv CSVSequenceRecordReader]
-           [org.deeplearning4j.datasets.datavec SequenceRecordReaderDataSetIterator]
-           [org.deeplearning4j.nn.conf BackpropType]
-           [org.deeplearning4j.nn.conf LearningRatePolicy]
-           [org.deeplearning4j.nn.conf.layers ConvolutionLayer$Builder]
-           [org.deeplearning4j.nn.conf.layers SubsamplingLayer$Builder SubsamplingLayer$PoolingType]
-           [org.deeplearning4j.nn.conf.inputs InputType]))
+           [org.deeplearning4j.nn.conf 
+            BackpropType
+            LearningRatePolicy]
+           [org.deeplearning4j.nn.conf.layers 
+            SubsamplingLayer$Builder 
+            SubsamplingLayer$PoolingType
+            ConvolutionLayer$Builder
+            RnnOutputLayer$Builder
+            RBM$Builder
+            GravesLSTM$Builder
+            OutputLayer$Builder
+            DenseLayer$Builder]
+           [org.deeplearning4j.nn.conf.inputs InputType]
+           [org.deeplearning4j.nn.conf.distribution NormalDistribution]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
