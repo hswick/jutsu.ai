@@ -113,3 +113,8 @@
 
 (deftest init-cnn
   (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-cnn))))
+
+;;https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/convolution/AnimalsClassification.java
+(def animals-cnn-config
+  [:seed 123
+   :weight-init :distribution])

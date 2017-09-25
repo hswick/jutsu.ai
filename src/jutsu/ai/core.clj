@@ -93,7 +93,8 @@
    :truncated-bptt (BackpropType/TruncatedBPTT)
    :learning-rate-policy-schedule (LearningRatePolicy/Schedule)
    :nesterovs (Updater/NESTEROVS)
-   :pooling-type-max (SubsamplingLayer$PoolingType/MAX)})
+   :pooling-type-max (SubsamplingLayer$PoolingType/MAX)
+   :distribution (WeightInit/DISTRIBUTION)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
