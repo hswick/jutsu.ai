@@ -7,7 +7,9 @@
            [org.datavec.api.records.reader.impl.csv 
             CSVRecordReader
             CSVSequenceRecordReader]
-           [org.deeplearning4j.nn.conf NeuralNetConfiguration$Builder]
+           [org.deeplearning4j.nn.conf 
+            NeuralNetConfiguration$Builder
+            GradientNormalization]
            [org.deeplearning4j.nn.api OptimizationAlgorithm]
            [org.deeplearning4j.nn.weights WeightInit]
            [org.deeplearning4j.nn.conf Updater]
@@ -103,7 +105,8 @@
    :learning-rate-policy-schedule (LearningRatePolicy/Schedule)
    :nesterovs (Updater/NESTEROVS)
    :pooling-type-max (SubsamplingLayer$PoolingType/MAX)
-   :distribution (WeightInit/DISTRIBUTION)})
+   :distribution (WeightInit/DISTRIBUTION)
+   :renormalize-l2-per-layer (GradientNormalization/RenormalizeL2Perlayer)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
