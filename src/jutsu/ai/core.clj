@@ -30,7 +30,10 @@
             OutputLayer$Builder
             DenseLayer$Builder]
            [org.deeplearning4j.nn.conf.inputs InputType]
-           [org.deeplearning4j.nn.conf.distribution NormalDistribution]))
+           [org.deeplearning4j.nn.conf.distribution 
+            NormalDistribution
+            GaussianDistribution]
+           [org.nd4j.linalg.learning.config Nesterovs]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -227,3 +230,9 @@
 
 (defn convolutional-flat [arg1 arg2 arg3]
   (InputType/convolutionalFlat arg1 arg2 arg3))
+
+(defn normal-distribution [min max]
+  (NormalDistribution. min max))
+
+(defn nesterovs [n]
+  (Nesterovs. n))

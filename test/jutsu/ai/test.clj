@@ -117,4 +117,7 @@
 ;;https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/convolution/AnimalsClassification.java
 (def animals-cnn-config
   [:seed 123
-   :weight-init :distribution])
+   :weight-init :distribution
+   :dist (ai/normal-distribution 0.0 0.1)
+   :activation :relu
+   :updater ])
