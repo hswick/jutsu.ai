@@ -1,7 +1,7 @@
 (set-env!
   :resource-paths #{"src" "data"}
   :dependencies '[[org.clojure/clojure "1.8.0"]
-                  [nightlight "1.7.0" :scope "test"]
+                  [nightlight "1.7.2" :scope "test"]
                   [adzerk/boot-test "1.2.0" :scope "test"]
                   [org.nd4j/nd4j-native-platform "0.8.0"]
                   [org.deeplearning4j/deeplearning4j-core "0.8.0"]
@@ -28,14 +28,14 @@
     (jar)
     (push)))
 
+(require
+  '[nightlight.boot :refer [nightlight]]
+  '[adzerk.boot-test :refer :all])
+
 ;;So nightlight can still open even if there is an error in the core file
 (try
   (require 'jutsu.ai.core)
   (catch Exception e (.getMessage e)))
-
-(require
-  '[nightlight.boot :refer [nightlight]]
-  '[adzerk.boot-test :refer :all])
 
 (deftask night []
   (comp

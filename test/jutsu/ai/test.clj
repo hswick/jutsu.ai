@@ -120,6 +120,10 @@
    :weight-init :distribution
    :dist (ai/normal-distribution 0.0 0.1)
    :activation :relu
-   :updater (ai/nesterovs 0.9)
+   :updater :nesterovs
    :iterations 1
-   :gradient-normalization :renormalize-l2-per-layer])
+   :gradient-normalization :renormalize-l2-per-layer
+   :optimization-algo :sgd
+   :learning-rate 1e-2
+   :bias-learning-rate (* 1e-2 2)
+   :learning-rate-decay-policy :step])

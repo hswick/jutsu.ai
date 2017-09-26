@@ -9,7 +9,8 @@
             CSVSequenceRecordReader]
            [org.deeplearning4j.nn.conf 
             NeuralNetConfiguration$Builder
-            GradientNormalization]
+            GradientNormalization
+            LearningRatePolicy]
            [org.deeplearning4j.nn.api OptimizationAlgorithm]
            [org.deeplearning4j.nn.weights WeightInit]
            [org.deeplearning4j.nn.conf Updater]
@@ -34,8 +35,7 @@
            [org.deeplearning4j.nn.conf.inputs InputType]
            [org.deeplearning4j.nn.conf.distribution 
             NormalDistribution
-            GaussianDistribution]
-           [org.nd4j.linalg.learning.config Nesterovs]))
+            GaussianDistribution]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -106,7 +106,8 @@
    :nesterovs (Updater/NESTEROVS)
    :pooling-type-max (SubsamplingLayer$PoolingType/MAX)
    :distribution (WeightInit/DISTRIBUTION)
-   :renormalize-l2-per-layer (GradientNormalization/RenormalizeL2Perlayer)})
+   :renormalize-l2-per-layer (GradientNormalization/RenormalizeL2PerLayer)
+   :step (LearningRatePolicy/Step)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
@@ -236,6 +237,3 @@
 
 (defn normal-distribution [min max]
   (NormalDistribution. min max))
-
-(defn nesterovs [n]
-  (Nesterovs. n))
