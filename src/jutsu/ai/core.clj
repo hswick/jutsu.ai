@@ -157,7 +157,7 @@
                     (SubsamplingLayer$Builder. pooling-type))
                    ([kernel-size stride]
                     (SubsamplingLayer$Builder. (int-array kernel-size) (int-array stride))))
-   :local-response-normalization (LocalResponseNormalization$Builder.)})
+   :local-response-normalization (fn [] (LocalResponseNormalization$Builder.))})
 
 (defn prepare-layer-config [layer-config]
   (->> (partition 2 layer-config)

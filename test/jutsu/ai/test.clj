@@ -149,7 +149,7 @@
    :pretrain false
    :set-input-type (ai/input-type-convolutional 100 100 3)])
 
-(def animals-cnn (ai/network animals-config))
+(def animals-cnn (ai/network animals-cnn-config))
 
 (deftest init-cnn
   (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class animals-cnn))))
