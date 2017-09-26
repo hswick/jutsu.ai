@@ -24,6 +24,20 @@ Install jutsu.ai by including this in your project dependencies:
 [hswick/jutsu.ai "0.1.0"]
 ```
 
+You will also need to include a ND4J backend:
+
+For CPU:
+
+```clojure
+[org.nd4j/nd4j-native-platform "0.8.0"]
+```
+
+For GPU:
+
+```clojure
+[org.nd4j/nd4j-cuda-8.0-platform "0.8.0"]
+```
+
 Here is a toy example demonstrating classifying the well known iris dataset.
 
 ```clojure
