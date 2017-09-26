@@ -10,14 +10,18 @@ The best of all, no more snakes!
 
 ![alt text](http://wp.patheos.com.s3.amazonaws.com/blogs/wildhunt/files/2011/03/saintpatrick.jpg)
 
-If you have any suggestions or fixes please feel free to submit a PR or post an issue!
+Currently this project is a work in progress. However, no drastic API changes are expected. Configurations have been tested on basic feedforward nets, RNN's, and CNN's. If you can't seem to find a configuration feature you are looking for submit an issue and I'll do my best to help.
+
+If you have any suggestions or fixes please feel free to submit a PR as well!
+
+Currently need help documenting the different configuration options. However, deeplearning4j has a very [good resource](https://deeplearning4j.org/glossary) that I recommend checking out.
 
 # Usage
 
 Install jutsu.ai by including this in your project dependencies:
 
 ```clojure
-[hswick/jutsu.ai "0.0.11"]
+[hswick/jutsu.ai "0.1.0"]
 ```
 
 Here is a toy example demonstrating classifying the well known iris dataset.
