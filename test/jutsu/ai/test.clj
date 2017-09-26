@@ -105,7 +105,7 @@
             [:sub-sampling :pooling-type-max [:kernel-size [2 2] :stride [2 2]]]
             [:dense [:activation :relu :n-out 500]]
             [:output :negative-log-likelihood [:n-out 20 :activation :softmax]]]
-   :set-input-type (ai/convolutional-flat 28 28 1)
+   :set-input-type (ai/input-type-convolutional-flat 28 28 1)
    :backprop true
    :pretrain false])
 
@@ -115,6 +115,7 @@
   (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-cnn))))
 
 ;;https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/convolution/AnimalsClassification.java
+;;.layer(10, fullyConnected("ffn1", 4096, nonZeroBias, dropOut, new GaussianDistribution(0, 0.005)))
 (def animals-cnn-config
   [:seed 123
    :weight-init :distribution
@@ -126,4 +127,24 @@
    :optimization-algo :sgd
    :learning-rate 1e-2
    :bias-learning-rate (* 1e-2 2)
-   :learning-rate-decay-policy :step])
+   :learning-rate-decay-policy :step
+   :lr-policy-decay-rate 0.1
+   :lr-policy-steps 100000
+   :regularization true
+   :l2 (* 5 1e-4)
+   :mini-batch false
+   :layers [[:convolution [11 11] [4 4] [3 3] [:name "cnn1" :n-in 3 :n-out 96 :bias-init 0]]
+            [:local-response-normalization [:name "lrn1"]]
+            [:sub-sampling [3 3] [2 2] [:name "maxpool1"]]
+            [:convolution [5 5] [1 1] [2 2] [:name "cnn2" :n-out 256 :bias-init 1]]
+            [:local-response-normalization [:name "lrn2"]]
+            [:sub-sampling [3 3] [2 2] [:name "maxpool2"]]
+            [:convolution [3 3] [1 1] [1 1] [:name "cnn3" :n-out 384 :bias-init 0]]
+            [:convolution [3 3] [1 1] [1 1] [:name "cnn4" :n-out 384 :bias-init 1]]
+            [:convolution [3 3] [1 1] [1 1] [:name "cnn5" :n-out 256 :bias-init 1]]
+            [:dense [:name "ffn1" :n-out 4096 :bias-init 1 :drop-out 0.5 :dist (ai/guassian-distribution 0 0.005)]]
+            [:dense [:name "ffn2" :n-out 4096 :bias-init 1 :drop-out 0.5 :dist (ai/guassian-distribution 0 0.005)]]
+            [:output :negative-log-likelihood [:name "output" :n-out 4 :activation :softmax]]]
+   :backprop true
+   :pretrain false
+   :set-input-type (ai/convolutional)])

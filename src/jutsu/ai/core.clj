@@ -31,7 +31,8 @@
             RBM$Builder
             GravesLSTM$Builder
             OutputLayer$Builder
-            DenseLayer$Builder]
+            DenseLayer$Builder
+            LocalResponseNormalization$Builder]
            [org.deeplearning4j.nn.conf.inputs InputType]
            [org.deeplearning4j.nn.conf.distribution 
             NormalDistribution
@@ -140,8 +141,23 @@
    :graves-lstm (fn [] (GravesLSTM$Builder.))
    :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
    :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))
-   :convolution (fn [kernel-size] (ConvolutionLayer$Builder. (int-array kernel-size)))
-   :sub-sampling (fn [pooling-type] (SubsamplingLayer$Builder. pooling-type))})
+   :convolution (fn 
+                  ([kernel-size] (ConvolutionLayer$Builder. (int-array kernel-size)))
+                  ([kernel stride]
+                   (ConvolutionLayer$Builder.
+                     (int-array kernel)
+                     (int-array stride)))
+                  ([kernel stride pad]
+                   (ConvolutionLayer$Builder. 
+                     (int-array kernel)
+                     (int-array stride)
+                     (int-array pad))))                  
+   :sub-sampling (fn 
+                   ([pooling-type] 
+                    (SubsamplingLayer$Builder. pooling-type))
+                   ([kernel-size stride]
+                    (SubsamplingLayer$Builder. (int-array kernel-size) (int-array stride))))
+   :local-response-normalization (LocalResponseNormalization$Builder.)})
 
 (defn prepare-layer-config [layer-config]
   (->> (partition 2 layer-config)
@@ -232,8 +248,14 @@
 (defn evaluate-regression [net dataset-iterator]
   (.stats (.evaluateRegression net dataset-iterator)))
 
-(defn convolutional-flat [arg1 arg2 arg3]
+(defn input-type-convolutional-flat [arg1 arg2 arg3]
   (InputType/convolutionalFlat arg1 arg2 arg3))
+
+(defn convolutional [arg1 arg2 arg3]
+  (InputType/convolutional arg1 arg2 arg3))
 
 (defn normal-distribution [min max]
   (NormalDistribution. min max))
+
+(defn guassian-distribution [min max]
+  (GaussianDistribution. min max))
