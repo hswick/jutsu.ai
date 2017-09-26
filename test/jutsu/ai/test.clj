@@ -147,4 +147,9 @@
             [:output :negative-log-likelihood [:name "output" :n-out 4 :activation :softmax]]]
    :backprop true
    :pretrain false
-   :set-input-type (ai/convolutional)])
+   :set-input-type (ai/input-type-convolutional 100 100 3)])
+
+(def animals-cnn (ai/network animals-config))
+
+(deftest init-cnn
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class animals-cnn))))

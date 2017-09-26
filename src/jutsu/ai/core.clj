@@ -251,7 +251,7 @@
 (defn input-type-convolutional-flat [arg1 arg2 arg3]
   (InputType/convolutionalFlat arg1 arg2 arg3))
 
-(defn convolutional [arg1 arg2 arg3]
+(defn input-type-convolutional [arg1 arg2 arg3]
   (InputType/convolutional arg1 arg2 arg3))
 
 (defn normal-distribution [min max]
