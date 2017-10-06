@@ -2,7 +2,7 @@
 
 Clojure wrapper for deeplearning4j with some added syntactic sugar.
 
-What if I told you that you could do machine learning on the JVM without wanting to cry or 
+What if I told you that you could do machine learning on the JVM without wanting to cry or
 set your hair on fire? The goal of this library is to be the most syntactically elegant machine learning library for Clojure/Java ecosystem. jutsu.ai uses Clojure specific code idioms, like Data as Code, to create an aesthetic and declarative api.
 
 The best of all, no more snakes!
@@ -58,9 +58,11 @@ Here is a toy example demonstrating classifying the well known iris dataset.
 	(ai/save-model "iris-model"))
   (.reset iris-iterator)
   (println (ai/evaluate iris-net iris-iterator))))
-  
+
 (iris-train)
 ```
+
+If you want to use a GUI to visualize training progress check out this plugin I made: [jutsu.ai.ui](https://github.com/hswick/jutsu.ai.ui)
 # Dev
 
 Run `boot night` to startup nightlight and begin editing your project in a browser.
