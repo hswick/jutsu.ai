@@ -43,9 +43,9 @@ Here is a toy example demonstrating classifying the well known iris dataset.
 ```clojure
 ;;Example configuration of a simple multilayer feedforward neural network architecture
 ;;classifying the iris dataset.
-(def iris-net-config [:layers  [[:dense [:n-in 4 :n-out 10 :activation :relu]]
-				[:dense [:n-in 10 :n-out 10 :activation :relu]]
-				[:output :negative-log-likelihood [:n-in 10 :n-out 3 :activation :softmax]]]])
+(def iris-net-config [:layers [[:dense [:n-in 4 :n-out 10 :activation :relu]]
+							   [:dense [:n-in 10 :n-out 10 :activation :relu]]
+							   [:output :negative-log-likelihood [:n-in 10 :n-out 3 :activation :softmax]]]])
 
 (def iris-net (-> iris-net-config
 				  ai/network-config
