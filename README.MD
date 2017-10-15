@@ -5,6 +5,8 @@ Clojure wrapper for deeplearning4j with some added syntactic sugar.
 What if I told you that you could do machine learning on the JVM without wanting to cry or
 set your hair on fire? The goal of this library is to be the most syntactically elegant machine learning library for Clojure/Java ecosystem. jutsu.ai uses Clojure specific code idioms, like Data as Code, to create an aesthetic and declarative api.
 
+jutsu.ai makes use of my laziest but cleverest achievement which is that it the network configuration translates clojure keywords into java method calls. The implication of this is that the majority of the config options provided by deeplearning4j are accessible with this library.
+
 The best of all, no more snakes!
 
 
@@ -41,6 +43,9 @@ For GPU:
 Here is a toy example demonstrating classifying the well known iris dataset.
 
 ```clojure
+(ns skynet.core
+  (:require [jutsu.ai.core :as ai]))
+
 ;;Example configuration of a simple multilayer feedforward neural network architecture
 ;;classifying the iris dataset.
 (def iris-net-config
@@ -50,8 +55,8 @@ Here is a toy example demonstrating classifying the well known iris dataset.
 
 (def iris-net
 	(-> iris-net-config
-		ai/network-config
-		ai/initialize-net))
+	ai/network-config
+	ai/initialize-net))
 
 (defn iris-train []
   (let [iris-iterator (ai/classification-csv-iterator "iris.csv" 150 4 3)]
@@ -65,13 +70,13 @@ Here is a toy example demonstrating classifying the well known iris dataset.
 ```
 
 If you want to use a GUI to visualize training progress check out this plugin I made: [jutsu.ai.ui](https://github.com/hswick/jutsu.ai.ui)
+
+Here is a [video tutorial](https://www.youtube.com/watch?v=yR_uy8fS52s) I made demonstrating the use of jutsu.ai.
 # Dev
 
-Run `boot night` to startup nightlight and begin editing your project in a browser.
+Run `boot night` to startup nightlight and begin editing the project in a browser.
 
 ## License
-
-Copyright © 2017 FIXME
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
