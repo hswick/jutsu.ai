@@ -55,7 +55,7 @@ Here is a toy example demonstrating classifying the well known iris dataset.
 
 (def iris-net
 	(-> iris-net-config
-	ai/network-config
+	ai/network
 	ai/initialize-net))
 
 (defn iris-train []

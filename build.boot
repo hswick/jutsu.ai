@@ -6,7 +6,7 @@
                   [org.nd4j/nd4j-native-platform "0.8.0"]
                   [org.deeplearning4j/deeplearning4j-core "0.8.0"]
                   [org.nd4j/nd4j-api "0.8.0"]
-                  [hswick/jutsu.matrix "0.0.7" :scope "test"]
+                  [hswick/jutsu.matrix "0.0.14" :scope "test"]
                   [org.datavec/datavec-api "0.8.0"]]
   :repositories (conj (get-env :repositories)
                       ["clojars" {:url "https://clojars.org/repo"
