@@ -1,7 +1,12 @@
 (ns jutsu.ai.core           
   (:import [org.datavec.api.split FileSplit]
            [org.datavec.api.util ClassPathResource]
-           [org.deeplearning4j.datasets.datavec 
+           [org.datavec.api.io.labels ParentPathLabelGenerator]
+           [org.datavec.image.recordreader ImageRecordReader]
+           [org.nd4j.linalg.dataset.api.iterator DataSetIterator]
+           [org.nd4j.linalg.dataset.api.preprocessor ImagePreProcessingScaler]
+           [org.datavec.image.loader NativeImageLoader]
+            [org.deeplearning4j.datasets.datavec 
             RecordReaderDataSetIterator
             SequenceRecordReaderDataSetIterator]
            [org.datavec.api.records.reader.impl.csv 
@@ -36,7 +41,9 @@
            [org.deeplearning4j.nn.conf.inputs InputType]
            [org.deeplearning4j.nn.conf.distribution 
             NormalDistribution
-            GaussianDistribution]))
+            GaussianDistribution]
+           [java.io File]
+           [java.util Random]))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -69,6 +76,18 @@
         rr (CSVSequenceRecordReader. 0 ";")]
     (.initialize rr (FileSplit. path))
     (SequenceRecordReaderDataSetIterator. rr batch-size num-possible-labels label-index)))
+
+(defn classification-dir-labeled-image-iterator 
+  [directory height width channels batch-size num-possible-labels rnd]
+  (let [dir (File. directory)
+        file-split (FileSplit. dir NativeImageLoader/ALLOWED_FORMATS (Random. rnd))         
+        rr (ImageRecordReader. height width (ParentPathLabelGenerator.))
+        _ (.initialize rr file-split) 
+        data-iterator (RecordReaderDataSetIterator. rr batch-size 1 num-possible-labels) 
+        data-normalizer (ImagePreProcessingScaler. 0 1)
+        _ (.fit data-normalizer data-iterator)
+        _ (.setPreProcessor data-iterator data-normalizer)]
+    data-iterator))
 
 (defn translate-to-java [key]
   (let [tokens (clojure.string/split (name key) #"-")
