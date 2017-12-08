@@ -153,3 +153,22 @@
 
 (deftest init-cnn
   (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class animals-cnn))))
+
+(def mnist-config
+  [:seed 123
+   :activation :relu
+   :updater :nesterovs
+   :iterations 1
+   :optimization-algo :sgd
+   :learning-rate 0.006
+   :regularization true
+   :l2 1e-4
+   :layers 
+		[[:dense [:n-in 784 :n-out 100 :activation :relu]]
+	 	 [:output :negative-log-likelihood [:n-in 100 :n-out 10 :activation :softmax]]]
+   :input-pre-processors {0 (CnnToFeedForwardPreProcessor. 28 28 1)}])
+
+(def mnist-network (ai/network mnist-config))
+
+(deftest mnist-test
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class mnist-network))))
