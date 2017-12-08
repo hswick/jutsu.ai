@@ -11,7 +11,7 @@
             :url "http://opensource.org/licenses/eclipse-1.0.php"}
   
   :resource-paths ["data"] 
-
+  :source-paths ["src" "examples"]
   :profiles {:uberjar
              {:main jutsu.ai.core}
 
