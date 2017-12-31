@@ -23,7 +23,7 @@ Currently need help documenting the different configuration options. However, de
 Install jutsu.ai by including this in your project dependencies:
 
 ```clojure
-[hswick/jutsu.ai "0.1.0"]
+[hswick/jutsu.ai "0.1.1"]
 ```
 
 You will also need to include a ND4J backend:
