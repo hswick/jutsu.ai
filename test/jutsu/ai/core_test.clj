@@ -1,4 +1,4 @@
-(ns jutsu.ai.test
+(ns jutsu.ai.core-test
   (:require [clojure.test :refer :all]
             [jutsu.ai.core :as ai]
             [jutsu.matrix.core :as m]))
@@ -133,17 +133,17 @@
    :regularization true
    :l2 (* 5 1e-4)
    :mini-batch false
-   :layers [[:convolution [11 11] [4 4] [3 3] [:name "cnn1" :n-in 3 :n-out 96 :bias-init 0]]
+   :layers [[:convolution [11 11] [4 4] [3 3] [:name "cnn1" :n-in 3 :n-out 96 :bias-init 0.0]]
             [:local-response-normalization [:name "lrn1"]]
             [:sub-sampling [3 3] [2 2] [:name "maxpool1"]]
-            [:convolution [5 5] [1 1] [2 2] [:name "cnn2" :n-out 256 :bias-init 1]]
+            [:convolution [5 5] [1 1] [2 2] [:name "cnn2" :n-out 256 :bias-init 1.0]]
             [:local-response-normalization [:name "lrn2"]]
             [:sub-sampling [3 3] [2 2] [:name "maxpool2"]]
-            [:convolution [3 3] [1 1] [1 1] [:name "cnn3" :n-out 384 :bias-init 0]]
-            [:convolution [3 3] [1 1] [1 1] [:name "cnn4" :n-out 384 :bias-init 1]]
-            [:convolution [3 3] [1 1] [1 1] [:name "cnn5" :n-out 256 :bias-init 1]]
-            [:dense [:name "ffn1" :n-out 4096 :bias-init 1 :drop-out 0.5 :dist (ai/guassian-distribution 0 0.005)]]
-            [:dense [:name "ffn2" :n-out 4096 :bias-init 1 :drop-out 0.5 :dist (ai/guassian-distribution 0 0.005)]]
+            [:convolution [3 3] [1 1] [1 1] [:name "cnn3" :n-out 384 :bias-init 0.0]]
+            [:convolution [3 3] [1 1] [1 1] [:name "cnn4" :n-out 384 :bias-init 1.0]]
+            [:convolution [3 3] [1 1] [1 1] [:name "cnn5" :n-out 256 :bias-init 1.0]]
+            [:dense [:name "ffn1" :n-out 4096 :bias-init 1.0 :drop-out 0.5 :dist (ai/guassian-distribution 0 0.005)]]
+            [:dense [:name "ffn2" :n-out 4096 :bias-init 1.0 :drop-out 0.5 :dist (ai/guassian-distribution 0 0.005)]]
             [:output :negative-log-likelihood [:name "output" :n-out 4 :activation :softmax]]]
    :backprop true
    :pretrain false
@@ -164,9 +164,9 @@
    :regularization true
    :l2 1e-4
    :layers 
-		[[:dense [:n-in 784 :n-out 100 :activation :relu]]
-	 	 [:output :negative-log-likelihood [:n-in 100 :n-out 10 :activation :softmax]]]
-   :input-pre-processors {0 (CnnToFeedForwardPreProcessor. 28 28 1)}])
+   [[:dense [:n-in 784 :n-out 100 :activation :relu]]
+    [:output :negative-log-likelihood [:n-in 100 :n-out 10 :activation :softmax]]]
+   :input-pre-processors {0 (org.deeplearning4j.nn.conf.preprocessor.CnnToFeedForwardPreProcessor. 28 28 1)}])
 
 (def mnist-network (ai/network mnist-config))
 
