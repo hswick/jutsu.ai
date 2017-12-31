@@ -16,7 +16,7 @@
 (task-options!
   jar {:main 'jutsu.ai.core
        :manifest {"Description" "Clojure wrapper for deeplearning4j intended to make machine learning on the JVM simpler"}}
-  pom {:version "0.1.0"
+  pom {:version "0.1.1"
        :project 'hswick/jutsu.ai
        :description "Clojure wrapper for deeplearning4j intended to make machine learning on the JVM simpler"
        :url "https://github.com/author/jutsu.ai"}
