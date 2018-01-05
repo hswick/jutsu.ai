@@ -6,7 +6,7 @@
            [org.nd4j.linalg.dataset.api.iterator DataSetIterator]
            [org.nd4j.linalg.dataset.api.preprocessor ImagePreProcessingScaler]
            [org.datavec.image.loader NativeImageLoader]
-            [org.deeplearning4j.datasets.datavec 
+           [org.deeplearning4j.datasets.datavec 
             RecordReaderDataSetIterator
             SequenceRecordReaderDataSetIterator]
            [org.datavec.api.records.reader.impl.csv 
@@ -51,6 +51,8 @@
         rr (CSVRecordReader.)]
     (.initialize rr (FileSplit. path))
     (RecordReaderDataSetIterator. rr nil batch-size label-index -1 true)))
+
+()
 
 (defn classification-csv-iterator [filename batch-size label-index num-possible-labels]
   (let [path (-> (ClassPathResource. filename)
