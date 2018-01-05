@@ -47,12 +47,10 @@
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
-              (.getFile))
+                 (.getFile))
         rr (CSVRecordReader.)]
     (.initialize rr (FileSplit. path))
     (RecordReaderDataSetIterator. rr nil batch-size label-index -1 true)))
-
-()
 
 (defn classification-csv-iterator [filename batch-size label-index num-possible-labels]
   (let [path (-> (ClassPathResource. filename)
