@@ -1,17 +1,17 @@
 (set-env!
-  :resource-paths #{"src" "data"}
-  :dependencies '[[org.clojure/clojure "1.8.0"]
-                  [nightlight "1.7.2" :scope "test"]
-                  [adzerk/boot-test "1.2.0" :scope "test"]
-                  [org.nd4j/nd4j-native-platform "0.8.0"]
-                  [org.deeplearning4j/deeplearning4j-core "0.8.0"]
-                  [org.nd4j/nd4j-api "0.8.0"]
-                  [hswick/jutsu.matrix "0.0.14" :scope "test"]
-                  [org.datavec/datavec-api "0.8.0"]]
-  :repositories (conj (get-env :repositories)
-                      ["clojars" {:url "https://clojars.org/repo"
-                                  :username (System/getenv "CLOJARS_USER")
-                                  :password (System/getenv "CLOJARS_PASS")}]))
+ :resource-paths #{"src" "data"}
+ :dependencies '[[org.clojure/clojure "1.8.0"]
+                 [nightlight "1.7.2" :scope "test"]
+                 [adzerk/boot-test "1.2.0" :scope "test"]
+                 [org.nd4j/nd4j-native-platform "0.9.1"]
+                 [org.deeplearning4j/deeplearning4j-core "0.9.1"]
+                 [org.nd4j/nd4j-api "0.9.1"]
+                 [org.datavec/datavec-api "0.9.1"]
+                 [hswick/jutsu.matrix "0.0.14" :scope "test"]]
+ :repositories (conj (get-env :repositories)
+                     ["clojars" {:url "https://clojars.org/repo"
+                                 :username (System/getenv "CLOJARS_USER")
+                                 :password (System/getenv "CLOJARS_PASS")}]))
 
 (task-options!
   jar {:main 'jutsu.ai.core
