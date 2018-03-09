@@ -25,9 +25,9 @@
            [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
            [org.deeplearning4j.util ModelSerializer]
            [org.deeplearning4j.eval Evaluation RegressionEvaluation]
-           [org.deeplearning4j.nn.conf 
+           [org.deeplearning4j.nn.conf
             BackpropType
-            LearningRatePolicy]
+            LearningRatePolicy WorkspaceMode]
            [org.deeplearning4j.nn.conf.layers 
             SubsamplingLayer$Builder 
             SubsamplingLayer$PoolingType
@@ -111,26 +111,28 @@
     split-config))
 
 (def options
-  {:sgd (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
-   :tanh (Activation/TANH)
-   :identity (Activation/IDENTITY)
-   :mse (LossFunctions$LossFunction/MSE)
-   :negative-log-likelihood (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
-   :kl-divergence (LossFunctions$LossFunction/KL_DIVERGENCE)
-   :relu (Activation/RELU)
-   :softmax (Activation/SOFTMAX)
-   :sigmoid (Activation/SIGMOID)
-   :softsign (Activation/SOFTSIGN)
-   :xavier (WeightInit/XAVIER)
-   :rmsprop (Updater/RMSPROP)
-   :mcxent (LossFunctions$LossFunction/MCXENT)
-   :truncated-bptt (BackpropType/TruncatedBPTT)
+  {:sgd                           (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :tanh                          (Activation/TANH)
+   :identity                      (Activation/IDENTITY)
+   :mse                           (LossFunctions$LossFunction/MSE)
+   :negative-log-likelihood       (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
+   :kl-divergence                 (LossFunctions$LossFunction/KL_DIVERGENCE)
+   :relu                          (Activation/RELU)
+   :softmax                       (Activation/SOFTMAX)
+   :sigmoid                       (Activation/SIGMOID)
+   :softsign                      (Activation/SOFTSIGN)
+   :xavier                        (WeightInit/XAVIER)
+   :rmsprop                       (Updater/RMSPROP)
+   :mcxent                        (LossFunctions$LossFunction/MCXENT)
+   :truncated-bptt                (BackpropType/TruncatedBPTT)
    :learning-rate-policy-schedule (LearningRatePolicy/Schedule)
-   :nesterovs (Updater/NESTEROVS)
-   :pooling-type-max (SubsamplingLayer$PoolingType/MAX)
-   :distribution (WeightInit/DISTRIBUTION)
-   :renormalize-l2-per-layer (GradientNormalization/RenormalizeL2PerLayer)
-   :step (LearningRatePolicy/Step)})
+   :nesterovs                     (Updater/NESTEROVS)
+   :pooling-type-max              (SubsamplingLayer$PoolingType/MAX)
+   :distribution                  (WeightInit/DISTRIBUTION)
+   :renormalize-l2-per-layer      (GradientNormalization/RenormalizeL2PerLayer)
+   :workspace-single              (WorkspaceMode/SINGLE)
+   :workspace-separate            (WorkspaceMode/SEPARATE)
+   :step                          (LearningRatePolicy/Step)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
