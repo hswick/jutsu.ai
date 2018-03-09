@@ -35,6 +35,8 @@
             RnnOutputLayer$Builder
             RBM$Builder
             GravesLSTM$Builder
+            LSTM$Builder
+            DropoutLayer$Builder
             OutputLayer$Builder
             DenseLayer$Builder
             LocalResponseNormalization$Builder]
@@ -118,6 +120,7 @@
    :relu (Activation/RELU)
    :softmax (Activation/SOFTMAX)
    :sigmoid (Activation/SIGMOID)
+   :softsign (Activation/SOFTSIGN)
    :xavier (WeightInit/XAVIER)
    :rmsprop (Updater/RMSPROP)
    :mcxent (LossFunctions$LossFunction/MCXENT)
@@ -156,8 +159,10 @@
 
 (def layer-builders
   {:dense (fn [] (DenseLayer$Builder.))
+   :dropout (fn [dropout] (DropoutLayer$Builder. dropout))
    :rbm (fn [] (RBM$Builder.))
    :graves-lstm (fn [] (GravesLSTM$Builder.))
+   :lstm (fn [] (LSTM$Builder.))
    :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
    :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))
    :convolution (fn 
