@@ -31,13 +31,13 @@ You will also need to include a ND4J backend:
 For CPU:
 
 ```clojure
-[org.nd4j/nd4j-native-platform "0.8.0"]
+[org.nd4j/nd4j-native-platform "0.9.1"]
 ```
 
 For GPU:
 
 ```clojure
-[org.nd4j/nd4j-cuda-8.0-platform "0.8.0"]
+[org.nd4j/nd4j-cuda-8.0-platform "0.9.1"]
 ```
 
 Here is a toy example demonstrating classifying the well known iris dataset.

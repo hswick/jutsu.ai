@@ -1,4 +1,4 @@
-(ns jutsu.ai.core           
+(ns jutsu.ai.core
   (:import [org.datavec.api.split FileSplit]
            [org.datavec.api.util ClassPathResource]
            [org.datavec.api.io.labels ParentPathLabelGenerator]
@@ -6,13 +6,13 @@
            [org.nd4j.linalg.dataset.api.iterator DataSetIterator]
            [org.nd4j.linalg.dataset.api.preprocessor ImagePreProcessingScaler]
            [org.datavec.image.loader NativeImageLoader]
-           [org.deeplearning4j.datasets.datavec 
+           [org.deeplearning4j.datasets.datavec
             RecordReaderDataSetIterator
             SequenceRecordReaderDataSetIterator]
-           [org.datavec.api.records.reader.impl.csv 
+           [org.datavec.api.records.reader.impl.csv
             CSVRecordReader
             CSVSequenceRecordReader]
-           [org.deeplearning4j.nn.conf 
+           [org.deeplearning4j.nn.conf
             NeuralNetConfiguration$Builder
             GradientNormalization
             LearningRatePolicy]
@@ -25,25 +25,28 @@
            [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
            [org.deeplearning4j.util ModelSerializer]
            [org.deeplearning4j.eval Evaluation RegressionEvaluation]
-           [org.deeplearning4j.nn.conf 
+           [org.deeplearning4j.nn.conf
             BackpropType
-            LearningRatePolicy]
-           [org.deeplearning4j.nn.conf.layers 
-            SubsamplingLayer$Builder 
+            LearningRatePolicy WorkspaceMode]
+           [org.deeplearning4j.nn.conf.layers
+            SubsamplingLayer$Builder
             SubsamplingLayer$PoolingType
             ConvolutionLayer$Builder
             RnnOutputLayer$Builder
             RBM$Builder
             GravesLSTM$Builder
+            LSTM$Builder
+            DropoutLayer$Builder
             OutputLayer$Builder
             DenseLayer$Builder
-            LocalResponseNormalization$Builder]
+            LocalResponseNormalization$Builder GravesBidirectionalLSTM$Builder]
            [org.deeplearning4j.nn.conf.inputs InputType]
-           [org.deeplearning4j.nn.conf.distribution 
+           [org.deeplearning4j.nn.conf.distribution
             NormalDistribution
             GaussianDistribution]
            [java.io File]
-           [java.util Random]))
+           [java.util Random]
+           (org.deeplearning4j.nn.layers.recurrent GravesBidirectionalLSTM)))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -109,25 +112,28 @@
     split-config))
 
 (def options
-  {:sgd (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
-   :tanh (Activation/TANH)
-   :identity (Activation/IDENTITY)
-   :mse (LossFunctions$LossFunction/MSE)
-   :negative-log-likelihood (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
-   :kl-divergence (LossFunctions$LossFunction/KL_DIVERGENCE)
-   :relu (Activation/RELU)
-   :softmax (Activation/SOFTMAX)
-   :sigmoid (Activation/SIGMOID)
-   :xavier (WeightInit/XAVIER)
-   :rmsprop (Updater/RMSPROP)
-   :mcxent (LossFunctions$LossFunction/MCXENT)
-   :truncated-bptt (BackpropType/TruncatedBPTT)
+  {:sgd                           (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :tanh                          (Activation/TANH)
+   :identity                      (Activation/IDENTITY)
+   :mse                           (LossFunctions$LossFunction/MSE)
+   :negative-log-likelihood       (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
+   :kl-divergence                 (LossFunctions$LossFunction/KL_DIVERGENCE)
+   :relu                          (Activation/RELU)
+   :softmax                       (Activation/SOFTMAX)
+   :sigmoid                       (Activation/SIGMOID)
+   :softsign                      (Activation/SOFTSIGN)
+   :xavier                        (WeightInit/XAVIER)
+   :rmsprop                       (Updater/RMSPROP)
+   :mcxent                        (LossFunctions$LossFunction/MCXENT)
+   :truncated-bptt                (BackpropType/TruncatedBPTT)
    :learning-rate-policy-schedule (LearningRatePolicy/Schedule)
-   :nesterovs (Updater/NESTEROVS)
-   :pooling-type-max (SubsamplingLayer$PoolingType/MAX)
-   :distribution (WeightInit/DISTRIBUTION)
-   :renormalize-l2-per-layer (GradientNormalization/RenormalizeL2PerLayer)
-   :step (LearningRatePolicy/Step)})
+   :nesterovs                     (Updater/NESTEROVS)
+   :pooling-type-max              (SubsamplingLayer$PoolingType/MAX)
+   :distribution                  (WeightInit/DISTRIBUTION)
+   :renormalize-l2-per-layer      (GradientNormalization/RenormalizeL2PerLayer)
+   :workspace-single              (WorkspaceMode/SINGLE)
+   :workspace-separate            (WorkspaceMode/SEPARATE)
+   :step                          (LearningRatePolicy/Step)})
 
 (defn get-option [arg]
   (let [option (get options arg)]
@@ -155,27 +161,30 @@
         (str-invoke net method arg)))))
 
 (def layer-builders
-  {:dense (fn [] (DenseLayer$Builder.))
-   :rbm (fn [] (RBM$Builder.))
-   :graves-lstm (fn [] (GravesLSTM$Builder.))
-   :output (fn [loss-fn] (OutputLayer$Builder. loss-fn))
-   :rnn-output (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))
-   :convolution (fn 
-                  ([kernel-size] (ConvolutionLayer$Builder. (int-array kernel-size)))
-                  ([kernel stride]
-                   (ConvolutionLayer$Builder.
-                     (int-array kernel)
-                     (int-array stride)))
-                  ([kernel stride pad]
-                   (ConvolutionLayer$Builder. 
-                     (int-array kernel)
-                     (int-array stride)
-                     (int-array pad))))                  
-   :sub-sampling (fn 
-                   ([pooling-type] 
-                    (SubsamplingLayer$Builder. pooling-type))
-                   ([kernel-size stride]
-                    (SubsamplingLayer$Builder. (int-array kernel-size) (int-array stride))))
+  {:dense                        (fn [] (DenseLayer$Builder.))
+   :dropout                      (fn [dropout] (DropoutLayer$Builder. dropout))
+   :rbm                          (fn [] (RBM$Builder.))
+   :graves-bidirectional-lstm    (fn [] (GravesBidirectionalLSTM$Builder.))
+   :graves-lstm                  (fn [] (GravesLSTM$Builder.))
+   :lstm                         (fn [] (LSTM$Builder.))
+   :output                       (fn [loss-fn] (OutputLayer$Builder. loss-fn))
+   :rnn-output                   (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))
+   :convolution                  (fn
+                                   ([kernel-size] (ConvolutionLayer$Builder. (int-array kernel-size)))
+                                   ([kernel stride]
+                                    (ConvolutionLayer$Builder.
+                                      (int-array kernel)
+                                      (int-array stride)))
+                                   ([kernel stride pad]
+                                    (ConvolutionLayer$Builder.
+                                      (int-array kernel)
+                                      (int-array stride)
+                                      (int-array pad))))
+   :sub-sampling                 (fn
+                                   ([pooling-type]
+                                    (SubsamplingLayer$Builder. pooling-type))
+                                   ([kernel-size stride]
+                                    (SubsamplingLayer$Builder. (int-array kernel-size) (int-array stride))))
    :local-response-normalization (fn [] (LocalResponseNormalization$Builder.))})
 
 (defn prepare-layer-config [layer-config]
