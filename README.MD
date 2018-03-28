@@ -71,7 +71,7 @@ Here is a toy example demonstrating classifying the well known iris dataset.
 
 # Documentation
 
-Make sure to take a look at the wiki for more documentation on the configuration and other parts of the setup: [wiki](https://github.com/hswick/jutsu.ai/wiki)
+Make sure to take a look at the [wiki](https://github.com/hswick/jutsu.ai/wiki) for more documentation.
 
 Here is a [video tutorial](https://www.youtube.com/watch?v=yR_uy8fS52s) I made demonstrating the use of jutsu.ai.
 
