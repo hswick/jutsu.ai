@@ -19,7 +19,7 @@
   pom {:version "0.1.2"
        :project 'hswick/jutsu.ai
        :description "Clojure wrapper for deeplearning4j intended to make machine learning on the JVM simpler"
-       :url "https://github.com/author/jutsu.ai"}
+       :url "https://github.com/hswick/jutsu.ai"}
   push {:repo "clojars"})
 
 (deftask deploy []
