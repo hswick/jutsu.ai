@@ -9,7 +9,6 @@ jutsu.ai makes use of my laziest but cleverest achievement which is that the net
 
 The best of all, no more snakes!
 
-
 ![alt text](http://wp.patheos.com.s3.amazonaws.com/blogs/wildhunt/files/2011/03/saintpatrick.jpg)
 
 Currently this project is a work in progress. However, no drastic API changes are expected. Configurations have been tested on basic feedforward nets, RNN's, and CNN's. If you can't seem to find a configuration feature you are looking for submit an issue and I'll do my best to help.
@@ -23,7 +22,7 @@ Currently need help documenting the different configuration options. However, de
 Install jutsu.ai by including this in your project dependencies:
 
 ```clojure
-[hswick/jutsu.ai "0.1.2"]
+[hswick/jutsu.ai "0.1.3"]
 ```
 
 You will also need to include a ND4J backend:
@@ -70,14 +69,34 @@ Here is a toy example demonstrating classifying the well known iris dataset.
 (iris-train)
 ```
 
+# Documentation
+
 Make sure to take a look at the wiki for more documentation on the configuration and other parts of the setup: [wiki](https://github.com/hswick/jutsu.ai/wiki)
 
-If you want to use a GUI to visualize training progress check out this plugin I made: [jutsu.ai.ui](https://github.com/hswick/jutsu.ai.ui)
-
 Here is a [video tutorial](https://www.youtube.com/watch?v=yR_uy8fS52s) I made demonstrating the use of jutsu.ai.
+
+## Additional Resources
+
+Here is a list of libraries that I have created to be used with jutsu.ai:
+
+* [jutsu.matrix](https://github.com/hswick/jutsu.matrix) Clojure wrapper around ND4J to make it easier to work with the underlying matrices in DL4J.
+* [jutsu.nlp](https://github.com/hswick/jutsu.nlp) Clojure wrapper around DL4J's NLP features. Provides useful abstractions for Word Vectors.
+* [jutsu.ai.ui](https://github.com/hswick/jutsu.ai.ui) GUI for visualizing DL4J training
+* [jutsu](https://github.com/hswick/jutsu) Simple web based graphing tool for Clojure
+
+Here is a list of libraries that I've found useful when working with jutsu.ai:
+
+* [claypoole](https://github.com/TheClimateCorporation/claypoole) Juiced up clojure functions like pmap. Very useful when working with big data sets.
+* [tablesaw](https://github.com/jtablesaw/tablesaw) Table slicing tool for Java. Nice API and extremely performant.
+
+
 # Dev
 
 Run `boot night` to startup nightlight and begin editing the project in a browser.
+
+# Contributing
+
+When incrementing the version number of the project, please make sure to update the boot version number, since I use boot to deploy the library. 
 
 ## License
 
