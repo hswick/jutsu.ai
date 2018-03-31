@@ -113,6 +113,7 @@
 
 (def options
   {:sgd                           (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :adam                          (Updater/ADAM)
    :tanh                          (Activation/TANH)
    :identity                      (Activation/IDENTITY)
    :mse                           (LossFunctions$LossFunction/MSE)

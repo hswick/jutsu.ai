@@ -1,4 +1,4 @@
-(defproject hswick/jutsu.ai "0.1.3"
+(defproject hswick/jutsu.ai "0.1.4"
   :description "Clojure wrapper for deeplearning4j intended to make machine learning on the JVM simpler"
   :url "https://github.com/author/jutsu.ai"
   :dependencies [[org.clojure/clojure "1.8.0"]
