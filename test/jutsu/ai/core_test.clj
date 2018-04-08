@@ -1,12 +1,10 @@
 (ns jutsu.ai.core-test
   (:require [clojure.test :refer :all]
             [jutsu.ai.core :as ai]
-            [jutsu.matrix.core :as m])
-  (:import (org.nd4j.linalg.learning.config Sgd Adam Nesterovs)
-           (org.nd4j.linalg.schedule MapSchedule ScheduleType StepSchedule)))
+            [jutsu.matrix.core :as m]))
 
 (def n (ai/network [:optimization-algo :sgd 
-                    :updater (Nesterovs. 0.5 0.9)
+                    :updater (ai/build-updater :nesterovs {:learning-rate 0.5 :momentum 0.9})
                            :layers [[:dense  [:n-in 1 :n-out 2 :activation :tanh]]
                                     [:dense  [:n-in 2 :n-out 2 :activation :tanh]]
                                     [:output :mse [:n-in 2 :n-out 1 
@@ -15,7 +13,7 @@
                            :backprop true]))
 
 (def layer-config-test-2 [:optimization-algo :sgd
-                          :updater (Nesterovs. 0.5 0.9)
+                          :updater (ai/build-updater :nesterovs {:learning-rate 0.5 :momentum 0.9})
                           :layers [[:dense [:n-in 4 :n-out 4 :activation :relu]]
                                    [:dense [:n-in 4 :n-out 4 :activation :relu]]
                                    [:output :negative-log-likelihood [:n-in 4 :n-out 10 
@@ -93,12 +91,12 @@
    :l2 0.0005
    :weight-init :xavier
    :optimization-algo :sgd
-   ;todo it'd be cool if this line
-   :updater (Adam. (MapSchedule. ScheduleType/EPOCH {(int 0) 0.01 (int 1000) 0.005 (int 3000) 0.001}))
-   ;could be this line, instead
-   ;:updater [:adam [:learning-rate-schedule [:map-schedule [:epoch {0 0.01 1000 0.005 3000 0.001}]]]]
-   ;or something like this
-   ;:updater [:adam [:learning-rate 0.01]]
+   :updater (ai/build-updater
+              :adam
+              {:learning-rate-schedule (ai/build-schedule
+                                         :map
+                                         {:schedule-type :epoch
+                                          :values        {(int 0) 0.01 (int 1000) 0.005 (int 3000) 0.001}})})
    :layers [[:convolution [5 5] [:n-in 1 :stride [1 1] :n-out 20 :activation :identity]]
             [:sub-sampling :pooling-type-max [:kernel-size [2 2] :stride [2 2]]]
             [:convolution [5 5] [:stride [1 1] :n-out 50 :activation :identity]]
@@ -121,11 +119,14 @@
    :weight-init :distribution
    :dist (ai/normal-distribution 0.0 0.1)
    :activation :relu
-   :updater (Nesterovs. (StepSchedule. ScheduleType/ITERATION 1e-2 0.1 100000))
+   :updater (ai/build-updater :nesterovs {:learning-rate-schedule (ai/build-schedule :step {:schedule-type :iteration
+                                                                                            :initial-value 1e-2
+                                                                                            :decay-rate 0.1
+                                                                                            :step 100000
+                                                                                            })})
+   :bias-updater (ai/build-updater :nesterovs {:learning-rate (* 1e-2 2)})
    :gradient-normalization :renormalize-l2-per-layer
    :optimization-algo :sgd
-   ;todo: where did this go? is this part of the updater now too?
-   ;:bias-learning-rate (* 1e-2 2)
    :l2 (* 5 1e-4)
    :mini-batch false
    :layers [[:convolution [11 11] [4 4] [3 3] [:name "cnn1" :n-in 3 :n-out 96 :bias-init 0.0]]
@@ -152,7 +153,7 @@
 (def mnist-config
   [:seed 123
    :activation :relu
-   :updater (Nesterovs. 0.006)
+   :updater (ai/build-updater :nesterovs {:learning-rate 0.006})
    :optimization-algo :sgd
    :l2 1e-4
    :layers 

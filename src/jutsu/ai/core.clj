@@ -42,10 +42,9 @@
             GaussianDistribution]
            [java.io File]
            [java.util Random]
-           (org.deeplearning4j.nn.layers.recurrent GravesBidirectionalLSTM)
-           (org.nd4j.linalg.schedule StepSchedule MapSchedule ScheduleType)
+           (org.nd4j.linalg.schedule StepSchedule MapSchedule ScheduleType ExponentialSchedule InverseSchedule PolySchedule SigmoidSchedule)
            (org.deeplearning4j.nn.conf.layers.variational VariationalAutoencoder VariationalAutoencoder$Builder)
-           (org.nd4j.linalg.learning.config Nesterovs Adam)))
+           (org.nd4j.linalg.learning.config Nesterovs Adam RmsProp Sgd AdaDelta AdaGrad AdaMax Nadam NoOp)))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -110,10 +109,6 @@
         split-config (split-at layers-index (partition 2 edn-config))]
     split-config))
 
-(def schedule-type-map
-  {:iteration (ScheduleType/ITERATION)
-   :epoch (ScheduleType/EPOCH)})
-
 (def options
   {:sgd                      (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
    :tanh                     (Activation/TANH)
@@ -128,15 +123,11 @@
    :xavier                   (WeightInit/XAVIER)
    :mcxent                   (LossFunctions$LossFunction/MCXENT)
    :truncated-bptt           (BackpropType/TruncatedBPTT)
-   :map-schedule             (fn [schedule-type key-value-pairs] (MapSchedule. (get schedule-type-map schedule-type) key-value-pairs))
    :pooling-type-max         (SubsamplingLayer$PoolingType/MAX)
    :distribution             (WeightInit/DISTRIBUTION)
    :renormalize-l2-per-layer (GradientNormalization/RenormalizeL2PerLayer)
    :workspace-single         (WorkspaceMode/SINGLE)
    :workspace-separate       (WorkspaceMode/SEPARATE)
-   :step-schedule            (fn [schedule-type initial-value decay-rate step] (StepSchedule. (get schedule-type-map schedule-type) initial-value decay-rate step))
-   :nesterovs                (Nesterovs.)
-   :adam                     (Adam.)
    })
 
 (defn get-option [arg]
@@ -291,3 +282,113 @@
 
 (defn guassian-distribution [min max]
   (GaussianDistribution. min max))
+
+(defmulti build-updater  (fn [updater-key opts] updater-key))
+
+(defmethod build-updater :rms-prop
+  [_ {:keys [learning-rate learning-rate-schedule epsilon]}]
+  (cond
+    (and learning-rate learning-rate-schedule epsilon) (RmsProp. learning-rate learning-rate-schedule epsilon)
+    learning-rate (RmsProp. learning-rate)
+    learning-rate-schedule (RmsProp. learning-rate-schedule)
+    :else (RmsProp.)
+    ))
+
+(defmethod build-updater :adam
+  [_ {:keys [learning-rate learning-rate-schedule beta1 beta2 epsilon]}]
+  (cond
+    (and learning-rate beta1 beta2 epsilon) (Adam. learning-rate beta1 beta2 epsilon)
+    learning-rate (Adam. learning-rate)
+    learning-rate-schedule (Adam. learning-rate-schedule)
+    :else (Adam.)
+    ))
+
+(defmethod build-updater :nesterovs
+  [_ {:keys [learning-rate momentum-schedule learning-rate-schedule momentum]}]
+  (cond
+    (and learning-rate momentum-schedule) (Nesterovs. learning-rate momentum-schedule)
+    (and learning-rate-schedule momentum-schedule) (Nesterovs. learning-rate-schedule momentum-schedule)
+    (and learning-rate-schedule momentum) (Nesterovs. learning-rate-schedule momentum)
+    learning-rate-schedule (Nesterovs. learning-rate-schedule)
+    (and learning-rate momentum) (Nesterovs. learning-rate momentum)
+    momentum (Nesterovs. momentum)
+    :else (Nesterovs.)
+    ))
+
+(defmethod build-updater :sgd
+  [_ {:keys [learning-rate-schedule learning-rate]}]
+  (cond
+    learning-rate-schedule (Sgd. learning-rate-schedule)
+    learning-rate (Sgd. learning-rate)
+    :else (Sgd.)))
+
+(defmethod build-updater :ada-delta
+  [_ {:keys []}]
+  (AdaDelta.))
+
+(defmethod build-updater :ada-grad
+  [_ {:keys [learning-rate learning-rate-schedule epsilon]}]
+  (cond
+    (and learning-rate-schedule epsilon) (AdaGrad. learning-rate-schedule epsilon)
+    learning-rate-schedule (AdaGrad. learning-rate-schedule)
+    (and learning-rate epsilon) (AdaGrad. learning-rate epsilon)
+    learning-rate (AdaGrad. learning-rate)
+    :else (AdaGrad.)
+    ))
+
+(defmethod build-updater :ada-max
+  [_ {:keys [learning-rate learning-rate-schedule beta1 beta2 epsilon]}]
+  (cond
+    (and learning-rate beta1 beta2 epsilon) (AdaMax. learning-rate beta1 beta2 epsilon)
+    learning-rate-schedule (AdaMax. learning-rate-schedule)
+    learning-rate (AdaMax. learning-rate)
+    :else (AdaMax.)
+    ))
+
+(defmethod build-updater :nadam
+  [_ {:keys [learning-rate learning-rate-schedule beta1 beta2 epsilon]}]
+  (cond
+    (and learning-rate beta1 beta2 epsilon) (Nadam. learning-rate beta1 beta2 epsilon)
+    learning-rate-schedule (Nadam. learning-rate-schedule)
+    learning-rate (Nadam. learning-rate)
+    :else (Nadam.)
+    ))
+
+(defmethod build-updater :no-op
+  [_ {:keys []}]
+  (NoOp.))
+
+(def schedule-type-map
+  {:iteration (ScheduleType/ITERATION)
+   :epoch (ScheduleType/EPOCH)})
+
+(defmulti build-schedule-internal (fn [schedule-key opts] schedule-key))
+
+(defmethod build-schedule-internal :exponential
+  [_ {:keys [schedule-type initial-value gamma]}]
+  (ExponentialSchedule. schedule-type (double initial-value) (double gamma)))
+
+(defmethod build-schedule-internal :inverse
+  [_ {:keys [schedule-type initial-value gamma power]}]
+  (InverseSchedule. schedule-type (double initial-value) (double gamma) (double power)))
+
+(defmethod build-schedule-internal :map
+  [_ {:keys [schedule-type values]}]
+  (MapSchedule. schedule-type values))
+
+(defmethod build-schedule-internal :poly
+  [_ {:keys [schedule-type initial-value power max-iter]}]
+  (PolySchedule. schedule-type (double initial-value) (double power) (int max-iter)))
+
+(defmethod build-schedule-internal :sigmoid
+  [_ {:keys [schedule-type initial-value gamma step-size]}]
+  (SigmoidSchedule. schedule-type (double initial-value) (double gamma) (int step-size)))
+
+(defmethod build-schedule-internal :step
+  [_ {:keys [schedule-type initial-value decay-rate step]}]
+  (StepSchedule. schedule-type (double initial-value) (double decay-rate) (double step)))
+
+(defn build-schedule [schedule-type opts]
+  (let [updated-opts (-> opts
+                       (assoc :schedule-type (get schedule-type-map (:schedule-type opts))))]
+    (build-schedule-internal schedule-type updated-opts)))
