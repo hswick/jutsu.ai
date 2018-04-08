@@ -43,7 +43,8 @@
            [java.io File]
            [java.util Random]
            (org.deeplearning4j.nn.layers.recurrent GravesBidirectionalLSTM)
-           (org.nd4j.linalg.schedule StepSchedule MapSchedule ScheduleType)))
+           (org.nd4j.linalg.schedule StepSchedule MapSchedule ScheduleType)
+           (org.deeplearning4j.nn.conf.layers.variational VariationalAutoencoder VariationalAutoencoder$Builder)))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -168,6 +169,7 @@
    :lstm                         (fn [] (LSTM$Builder.))
    :output                       (fn [loss-fn] (OutputLayer$Builder. loss-fn))
    :rnn-output                   (fn [loss-fn] (RnnOutputLayer$Builder. loss-fn))
+   :vae                          (fn [] (VariationalAutoencoder$Builder.))
    :convolution                  (fn
                                    ([kernel-size] (ConvolutionLayer$Builder. (int-array kernel-size)))
                                    ([kernel stride]

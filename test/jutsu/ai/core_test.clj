@@ -39,23 +39,22 @@
 
 (train-classification-net)
 
-;TODO it looks like RBM has been removed in the newest release. I'm not sure what that's all about
-;(def autoencoder-config2
-;  [:layers [[:rbm [:n-in 2000 :n-out 1000 :loss-function :kl-divergence]]
-;            [:rbm [:n-in 1000 :n-out 500 :loss-function :kl-divergence]]
-;            [:rbm [:n-in 500 :n-out 250 :loss-function :kl-divergence]]
-;            [:rbm [:n-in 250 :n-out 100 :loss-function :kl-divergence]]
-;            [:rbm [:n-in 100 :n-out 30 :loss-function :kl-divergence]]
-;            [:rbm [:n-in 30 :n-out 100 :loss-function :kl-divergence]]
-;            [:rbm [:n-in 100 :n-out 250 :loss-function :kl-divergence]]
-;            [:rbm [:n-in 250 :n-out 500 :loss-function :kl-divergence]]
-;            [:rbm [:n-in 500 :n-out 1000 :loss-function :kl-divergence]]
-;            [:output :mse [:n-in 1000 :n-out 2000 :activation :sigmoid]]]])
-;
-;(def test-encoder (ai/network autoencoder-config2))
-;
-;(deftest init-autoencoder
-;  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-encoder))))
+(def autoencoder-config2
+  [:layers [[:vae [:n-in 2000 :n-out 1000 :loss-function :kl-divergence]]
+            [:vae [:n-in 1000 :n-out 500 :loss-function :kl-divergence]]
+            [:vae [:n-in 500 :n-out 250 :loss-function :kl-divergence]]
+            [:vae [:n-in 250 :n-out 100 :loss-function :kl-divergence]]
+            [:vae [:n-in 100 :n-out 30 :loss-function :kl-divergence]]
+            [:vae [:n-in 30 :n-out 100 :loss-function :kl-divergence]]
+            [:vae [:n-in 100 :n-out 250 :loss-function :kl-divergence]]
+            [:vae [:n-in 250 :n-out 500 :loss-function :kl-divergence]]
+            [:vae [:n-in 500 :n-out 1000 :loss-function :kl-divergence]]
+            [:output :mse [:n-in 1000 :n-out 2000 :activation :sigmoid]]]])
+
+(def test-encoder (ai/network autoencoder-config2))
+
+(deftest init-autoencoder
+  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-encoder))))
 
 (def iris-net-config2 [:layers [[:dense [:n-in 4 :n-out 10 :activation :relu]]
                                 [:dense [:n-in 10 :n-out 10 :activation :relu]]
@@ -91,9 +90,6 @@
 ;;From https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/convolution/LenetMnistExample.java
 (def cnn-config
   [:seed 123
-   ;TODO where did these go?
-   ;:iterations 1
-   ;:regularization true
    :l2 0.0005
    :weight-init :xavier
    :optimization-algo :sgd
@@ -121,14 +117,10 @@
    :dist (ai/normal-distribution 0.0 0.1)
    :activation :relu
    :updater (Nesterovs. (StepSchedule. ScheduleType/ITERATION 1e-2 0.1 100000))
-   ;TODO where did this go?
-   ;:iterations 1
    :gradient-normalization :renormalize-l2-per-layer
    :optimization-algo :sgd
    ;todo: where did this go? is this part of the updater now too?
    ;:bias-learning-rate (* 1e-2 2)
-   ;todo: where did this go?
-   ;:regularization true
    :l2 (* 5 1e-4)
    :mini-batch false
    :layers [[:convolution [11 11] [4 4] [3 3] [:name "cnn1" :n-in 3 :n-out 96 :bias-init 0.0]]
@@ -157,9 +149,6 @@
    :activation :relu
    :updater (Nesterovs. 0.006)
    :optimization-algo :sgd
-   ;TODO where did these go?
-   ;:iterations 1
-   ;:regularization true
    :l2 1e-4
    :layers 
    [[:dense [:n-in 784 :n-out 100 :activation :relu]]
