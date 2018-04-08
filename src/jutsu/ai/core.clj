@@ -3,7 +3,6 @@
            [org.datavec.api.util ClassPathResource]
            [org.datavec.api.io.labels ParentPathLabelGenerator]
            [org.datavec.image.recordreader ImageRecordReader]
-           [org.nd4j.linalg.dataset.api.iterator DataSetIterator]
            [org.nd4j.linalg.dataset.api.preprocessor ImagePreProcessingScaler]
            [org.datavec.image.loader NativeImageLoader]
            [org.deeplearning4j.datasets.datavec
@@ -15,25 +14,22 @@
            [org.deeplearning4j.nn.conf
             NeuralNetConfiguration$Builder
             GradientNormalization
-            LearningRatePolicy]
+            ]
            [org.deeplearning4j.nn.api OptimizationAlgorithm]
            [org.deeplearning4j.nn.weights WeightInit]
-           [org.deeplearning4j.nn.conf Updater]
            [org.nd4j.linalg.activations Activation]
            [org.nd4j.linalg.lossfunctions LossFunctions$LossFunction]
            [org.deeplearning4j.optimize.listeners ScoreIterationListener]
            [org.deeplearning4j.nn.multilayer MultiLayerNetwork]
            [org.deeplearning4j.util ModelSerializer]
-           [org.deeplearning4j.eval Evaluation RegressionEvaluation]
            [org.deeplearning4j.nn.conf
             BackpropType
-            LearningRatePolicy WorkspaceMode]
+            WorkspaceMode]
            [org.deeplearning4j.nn.conf.layers
             SubsamplingLayer$Builder
             SubsamplingLayer$PoolingType
             ConvolutionLayer$Builder
             RnnOutputLayer$Builder
-            RBM$Builder
             GravesLSTM$Builder
             LSTM$Builder
             DropoutLayer$Builder
@@ -46,7 +42,8 @@
             GaussianDistribution]
            [java.io File]
            [java.util Random]
-           (org.deeplearning4j.nn.layers.recurrent GravesBidirectionalLSTM)))
+           (org.deeplearning4j.nn.layers.recurrent GravesBidirectionalLSTM)
+           (org.nd4j.linalg.schedule StepSchedule MapSchedule ScheduleType)))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -111,30 +108,32 @@
         split-config (split-at layers-index (partition 2 edn-config))]
     split-config))
 
+(def schedule-type-map
+  {:iteration (ScheduleType/ITERATION)
+   :epoch (ScheduleType/EPOCH)})
+
 (def options
-  {:sgd                           (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
-   :adam                          (Updater/ADAM)
-   :tanh                          (Activation/TANH)
-   :identity                      (Activation/IDENTITY)
-   :mse                           (LossFunctions$LossFunction/MSE)
-   :negative-log-likelihood       (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
-   :kl-divergence                 (LossFunctions$LossFunction/KL_DIVERGENCE)
-   :relu                          (Activation/RELU)
-   :softmax                       (Activation/SOFTMAX)
-   :sigmoid                       (Activation/SIGMOID)
-   :softsign                      (Activation/SOFTSIGN)
-   :xavier                        (WeightInit/XAVIER)
-   :rmsprop                       (Updater/RMSPROP)
-   :mcxent                        (LossFunctions$LossFunction/MCXENT)
-   :truncated-bptt                (BackpropType/TruncatedBPTT)
-   :learning-rate-policy-schedule (LearningRatePolicy/Schedule)
-   :nesterovs                     (Updater/NESTEROVS)
-   :pooling-type-max              (SubsamplingLayer$PoolingType/MAX)
-   :distribution                  (WeightInit/DISTRIBUTION)
-   :renormalize-l2-per-layer      (GradientNormalization/RenormalizeL2PerLayer)
-   :workspace-single              (WorkspaceMode/SINGLE)
-   :workspace-separate            (WorkspaceMode/SEPARATE)
-   :step                          (LearningRatePolicy/Step)})
+  {:sgd                      (OptimizationAlgorithm/STOCHASTIC_GRADIENT_DESCENT)
+   :tanh                     (Activation/TANH)
+   :identity                 (Activation/IDENTITY)
+   :mse                      (LossFunctions$LossFunction/MSE)
+   :negative-log-likelihood  (LossFunctions$LossFunction/NEGATIVELOGLIKELIHOOD)
+   :kl-divergence            (LossFunctions$LossFunction/KL_DIVERGENCE)
+   :relu                     (Activation/RELU)
+   :softmax                  (Activation/SOFTMAX)
+   :sigmoid                  (Activation/SIGMOID)
+   :softsign                 (Activation/SOFTSIGN)
+   :xavier                   (WeightInit/XAVIER)
+   :mcxent                   (LossFunctions$LossFunction/MCXENT)
+   :truncated-bptt           (BackpropType/TruncatedBPTT)
+   :map-schedule             (fn [schedule-type key-value-pairs] (MapSchedule. (get schedule-type-map schedule-type) key-value-pairs))
+   :pooling-type-max         (SubsamplingLayer$PoolingType/MAX)
+   :distribution             (WeightInit/DISTRIBUTION)
+   :renormalize-l2-per-layer (GradientNormalization/RenormalizeL2PerLayer)
+   :workspace-single         (WorkspaceMode/SINGLE)
+   :workspace-separate       (WorkspaceMode/SEPARATE)
+   :step-schedule            (fn [schedule-type initial-value decay-rate step] (StepSchedule. (get schedule-type-map schedule-type) initial-value decay-rate step))
+   })
 
 (defn get-option [arg]
   (let [option (get options arg)]
@@ -164,7 +163,6 @@
 (def layer-builders
   {:dense                        (fn [] (DenseLayer$Builder.))
    :dropout                      (fn [dropout] (DropoutLayer$Builder. dropout))
-   :rbm                          (fn [] (RBM$Builder.))
    :graves-bidirectional-lstm    (fn [] (GravesBidirectionalLSTM$Builder.))
    :graves-lstm                  (fn [] (GravesLSTM$Builder.))
    :lstm                         (fn [] (LSTM$Builder.))

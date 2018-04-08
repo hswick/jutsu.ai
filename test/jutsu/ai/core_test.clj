@@ -1,11 +1,12 @@
 (ns jutsu.ai.core-test
   (:require [clojure.test :refer :all]
             [jutsu.ai.core :as ai]
-            [jutsu.matrix.core :as m]))
+            [jutsu.matrix.core :as m])
+  (:import (org.nd4j.linalg.learning.config Sgd Adam Nesterovs)
+           (org.nd4j.linalg.schedule MapSchedule ScheduleType StepSchedule)))
 
 (def n (ai/network [:optimization-algo :sgd 
-                           :learning-rate 0.5
-                           :momentum 0.9
+                    :updater (Nesterovs. 0.5 0.9)
                            :layers [[:dense  [:n-in 1 :n-out 2 :activation :tanh]]
                                     [:dense  [:n-in 2 :n-out 2 :activation :tanh]]
                                     [:output :mse [:n-in 2 :n-out 1 
@@ -13,9 +14,8 @@
                            :pretrain false
                            :backprop true]))
 
-(def layer-config-test-2 [:optimization-algo :sgd 
-                          :learning-rate 0.5
-                          :momentum 0.9
+(def layer-config-test-2 [:optimization-algo :sgd
+                          :updater (Nesterovs. 0.5 0.9)
                           :layers [[:dense [:n-in 4 :n-out 4 :activation :relu]]
                                    [:dense [:n-in 4 :n-out 4 :activation :relu]]
                                    [:output :negative-log-likelihood [:n-in 4 :n-out 10 
@@ -39,22 +39,23 @@
 
 (train-classification-net)
 
-(def autoencoder-config2
-  [:layers [[:rbm [:n-in 2000 :n-out 1000 :loss-function :kl-divergence]]
-            [:rbm [:n-in 1000 :n-out 500 :loss-function :kl-divergence]]
-            [:rbm [:n-in 500 :n-out 250 :loss-function :kl-divergence]]
-            [:rbm [:n-in 250 :n-out 100 :loss-function :kl-divergence]]
-            [:rbm [:n-in 100 :n-out 30 :loss-function :kl-divergence]]
-            [:rbm [:n-in 30 :n-out 100 :loss-function :kl-divergence]]
-            [:rbm [:n-in 100 :n-out 250 :loss-function :kl-divergence]]
-            [:rbm [:n-in 250 :n-out 500 :loss-function :kl-divergence]]
-            [:rbm [:n-in 500 :n-out 1000 :loss-function :kl-divergence]]
-            [:output :mse [:n-in 1000 :n-out 2000 :activation :sigmoid]]]])
-
-(def test-encoder (ai/network autoencoder-config2))
-
-(deftest init-autoencoder
-  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-encoder))))
+;TODO it looks like RBM has been removed in the newest release. I'm not sure what that's all about
+;(def autoencoder-config2
+;  [:layers [[:rbm [:n-in 2000 :n-out 1000 :loss-function :kl-divergence]]
+;            [:rbm [:n-in 1000 :n-out 500 :loss-function :kl-divergence]]
+;            [:rbm [:n-in 500 :n-out 250 :loss-function :kl-divergence]]
+;            [:rbm [:n-in 250 :n-out 100 :loss-function :kl-divergence]]
+;            [:rbm [:n-in 100 :n-out 30 :loss-function :kl-divergence]]
+;            [:rbm [:n-in 30 :n-out 100 :loss-function :kl-divergence]]
+;            [:rbm [:n-in 100 :n-out 250 :loss-function :kl-divergence]]
+;            [:rbm [:n-in 250 :n-out 500 :loss-function :kl-divergence]]
+;            [:rbm [:n-in 500 :n-out 1000 :loss-function :kl-divergence]]
+;            [:output :mse [:n-in 1000 :n-out 2000 :activation :sigmoid]]]])
+;
+;(def test-encoder (ai/network autoencoder-config2))
+;
+;(deftest init-autoencoder
+;  (is (= org.deeplearning4j.nn.multilayer.MultiLayerNetwork (class test-encoder))))
 
 (def iris-net-config2 [:layers [[:dense [:n-in 4 :n-out 10 :activation :relu]]
                                 [:dense [:n-in 10 :n-out 10 :activation :relu]]
@@ -90,15 +91,13 @@
 ;;From https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/convolution/LenetMnistExample.java
 (def cnn-config
   [:seed 123
-   :iterations 1
-   :regularization true
+   ;TODO where did these go?
+   ;:iterations 1
+   ;:regularization true
    :l2 0.0005
-   :learning-rate 0.01
-   :learning-rate-decay-policy :learning-rate-policy-schedule
-   :learning-rate-schedule {0 0.01 1000 0.005 3000 0.001}
    :weight-init :xavier
    :optimization-algo :sgd
-   :updater :nesterovs
+   :updater (Nesterovs. (MapSchedule. ScheduleType/EPOCH {(int 0) 0.01 (int 1000) 0.005 (int 3000) 0.001}))
    :layers [[:convolution [5 5] [:n-in 1 :stride [1 1] :n-out 20 :activation :identity]]
             [:sub-sampling :pooling-type-max [:kernel-size [2 2] :stride [2 2]]]
             [:convolution [5 5] [:stride [1 1] :n-out 50 :activation :identity]]
@@ -121,16 +120,15 @@
    :weight-init :distribution
    :dist (ai/normal-distribution 0.0 0.1)
    :activation :relu
-   :updater :nesterovs
-   :iterations 1
+   :updater (Nesterovs. (StepSchedule. ScheduleType/ITERATION 1e-2 0.1 100000))
+   ;TODO where did this go?
+   ;:iterations 1
    :gradient-normalization :renormalize-l2-per-layer
    :optimization-algo :sgd
-   :learning-rate 1e-2
-   :bias-learning-rate (* 1e-2 2)
-   :learning-rate-decay-policy :step
-   :lr-policy-decay-rate 0.1
-   :lr-policy-steps 100000
-   :regularization true
+   ;todo: where did this go? is this part of the updater now too?
+   ;:bias-learning-rate (* 1e-2 2)
+   ;todo: where did this go?
+   ;:regularization true
    :l2 (* 5 1e-4)
    :mini-batch false
    :layers [[:convolution [11 11] [4 4] [3 3] [:name "cnn1" :n-in 3 :n-out 96 :bias-init 0.0]]
@@ -157,11 +155,11 @@
 (def mnist-config
   [:seed 123
    :activation :relu
-   :updater :nesterovs
-   :iterations 1
+   :updater (Nesterovs. 0.006)
    :optimization-algo :sgd
-   :learning-rate 0.006
-   :regularization true
+   ;TODO where did these go?
+   ;:iterations 1
+   ;:regularization true
    :l2 1e-4
    :layers 
    [[:dense [:n-in 784 :n-out 100 :activation :relu]]
