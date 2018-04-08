@@ -93,7 +93,12 @@
    :l2 0.0005
    :weight-init :xavier
    :optimization-algo :sgd
-   :updater (Nesterovs. (MapSchedule. ScheduleType/EPOCH {(int 0) 0.01 (int 1000) 0.005 (int 3000) 0.001}))
+   ;todo it'd be cool if this line
+   :updater (Adam. (MapSchedule. ScheduleType/EPOCH {(int 0) 0.01 (int 1000) 0.005 (int 3000) 0.001}))
+   ;could be this line, instead
+   ;:updater [:adam [:learning-rate-schedule [:map-schedule [:epoch {0 0.01 1000 0.005 3000 0.001}]]]]
+   ;or something like this
+   ;:updater [:adam [:learning-rate 0.01]]
    :layers [[:convolution [5 5] [:n-in 1 :stride [1 1] :n-out 20 :activation :identity]]
             [:sub-sampling :pooling-type-max [:kernel-size [2 2] :stride [2 2]]]
             [:convolution [5 5] [:stride [1 1] :n-out 50 :activation :identity]]

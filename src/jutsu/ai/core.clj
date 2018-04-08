@@ -44,7 +44,8 @@
            [java.util Random]
            (org.deeplearning4j.nn.layers.recurrent GravesBidirectionalLSTM)
            (org.nd4j.linalg.schedule StepSchedule MapSchedule ScheduleType)
-           (org.deeplearning4j.nn.conf.layers.variational VariationalAutoencoder VariationalAutoencoder$Builder)))
+           (org.deeplearning4j.nn.conf.layers.variational VariationalAutoencoder VariationalAutoencoder$Builder)
+           (org.nd4j.linalg.learning.config Nesterovs Adam)))
 
 (defn regression-csv-iterator [filename batch-size label-index]
   (let [path (-> (ClassPathResource. filename)
@@ -134,6 +135,8 @@
    :workspace-single         (WorkspaceMode/SINGLE)
    :workspace-separate       (WorkspaceMode/SEPARATE)
    :step-schedule            (fn [schedule-type initial-value decay-rate step] (StepSchedule. (get schedule-type-map schedule-type) initial-value decay-rate step))
+   :nesterovs                (Nesterovs.)
+   :adam                     (Adam.)
    })
 
 (defn get-option [arg]
