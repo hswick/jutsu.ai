@@ -96,7 +96,10 @@ Run `boot night` to startup nightlight and begin editing the project in a browse
 
 # Contributing
 
-When incrementing the version number of the project, please make sure to update the boot version number, since I use boot to deploy the library. 
+When changing project dependencies or project version number, make sure to update this in the build.boot file.
+The Travis build uses boot, and will not pass the checks unless you update it.
+
+The project.clj file is simple there to make it easier for other developers to contribute.
 
 ## License
 
