@@ -14,3 +14,6 @@ pom.xml.asc
 .nightlight.edn
 *.iml
 /.idea
+.nrepl-history
+classnet.zip
+iris-model
