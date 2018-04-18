@@ -3,11 +3,11 @@
  :dependencies '[[org.clojure/clojure "1.8.0"]
                  [nightlight "1.7.2" :scope "test"]
                  [adzerk/boot-test "1.2.0" :scope "test"]
-                 [org.nd4j/nd4j-native-platform "0.9.1"]
-                 [org.deeplearning4j/deeplearning4j-core "0.9.1"]
-                 [org.nd4j/nd4j-api "0.9.1"]
-                 [org.datavec/datavec-api "0.9.1"]
-                 [hswick/jutsu.matrix "0.0.14" :scope "test"]]
+                 [org.nd4j/nd4j-native-platform "1.0.0-alpha" :scope "provided"]
+                 [org.deeplearning4j/deeplearning4j-core "1.0.0-alpha"]
+                 [org.nd4j/nd4j-api "1.0.0-alpha"]
+                 [org.datavec/datavec-api "1.0.0-alpha"]
+                 [hswick/jutsu.matrix "0.0.15" :scope "test"]]
  :repositories (conj (get-env :repositories)
                      ["clojars" {:url "https://clojars.org/repo"
                                  :username (System/getenv "CLOJARS_USER")
@@ -16,7 +16,7 @@
 (task-options!
   jar {:main 'jutsu.ai.core
        :manifest {"Description" "Clojure wrapper for deeplearning4j intended to make machine learning on the JVM simpler"}}
-  pom {:version "0.1.3"
+  pom {:version "0.1.4"
        :project 'hswick/jutsu.ai
        :description "Clojure wrapper for deeplearning4j intended to make machine learning on the JVM simpler"
        :url "https://github.com/hswick/jutsu.ai"}
