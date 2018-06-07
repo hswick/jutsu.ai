@@ -22,7 +22,7 @@ Currently need help documenting the different configuration options. However, de
 Install jutsu.ai by including this in your project dependencies:
 
 ```clojure
-[hswick/jutsu.ai "0.1.4"]
+[hswick/jutsu.ai "0.1.5"]
 ```
 
 You will also need to include a ND4J backend:
@@ -30,13 +30,13 @@ You will also need to include a ND4J backend:
 For CPU:
 
 ```clojure
-[org.nd4j/nd4j-native-platform "1.0.0-alpha"]
+[org.nd4j/nd4j-native-platform "1.0.0-beta"]
 ```
 
 For GPU:
 
 ```clojure
-[org.nd4j/nd4j-cuda-8.0-platform "1.0.0-alpha"]
+[org.nd4j/nd4j-cuda-8.0-platform "1.0.0-beta"]
 ```
 
 Here is a toy example demonstrating classifying the well known iris dataset.
