@@ -7,7 +7,7 @@
            [org.datavec.image.loader NativeImageLoader]
            [org.deeplearning4j.datasets.datavec
             RecordReaderDataSetIterator
-            SequenceRecordReaderDataSetIterator]
+            SequenceRecordReaderDataSetIterator RecordReaderDataSetIterator$Builder]
            [org.datavec.api.records.reader.impl.csv
             CSVRecordReader
             CSVSequenceRecordReader]
@@ -51,14 +51,18 @@
                  (.getFile))
         rr (CSVRecordReader.)]
     (.initialize rr (FileSplit. path))
-    (RecordReaderDataSetIterator. rr nil batch-size label-index -1 true)))
+    (.build
+      (doto (RecordReaderDataSetIterator$Builder. rr batch-size)
+        (.regression label-index)))))
 
 (defn classification-csv-iterator [filename batch-size label-index num-possible-labels]
   (let [path (-> (ClassPathResource. filename)
                  (.getFile))
         rr (CSVRecordReader.)]
     (.initialize rr (FileSplit. path))
-    (RecordReaderDataSetIterator. rr batch-size label-index num-possible-labels)))
+    (.build
+      (doto (RecordReaderDataSetIterator$Builder. rr batch-size)
+        (.classification label-index num-possible-labels)))))
 
 (defn sequence-regression-csv-iterator 
   "Use for Recurrent Neural Nets"
