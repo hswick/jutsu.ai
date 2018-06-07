@@ -130,8 +130,8 @@
    :pooling-type-max         (SubsamplingLayer$PoolingType/MAX)
    :distribution             (WeightInit/DISTRIBUTION)
    :renormalize-l2-per-layer (GradientNormalization/RenormalizeL2PerLayer)
-   :workspace-single         (WorkspaceMode/SINGLE)
-   :workspace-separate       (WorkspaceMode/SEPARATE)
+   :workspace-none           (WorkspaceMode/NONE)
+   :workspace-enabled        (WorkspaceMode/ENABLED)
    })
 
 (defn get-option [arg]
