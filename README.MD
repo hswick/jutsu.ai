@@ -22,7 +22,7 @@ Currently need help documenting the different configuration options. However, de
 Install jutsu.ai by including this in your project dependencies:
 
 ```clojure
-[hswick/jutsu.ai "0.1.3"]
+[hswick/jutsu.ai "0.1.4"]
 ```
 
 You will also need to include a ND4J backend:
@@ -30,13 +30,13 @@ You will also need to include a ND4J backend:
 For CPU:
 
 ```clojure
-[org.nd4j/nd4j-native-platform "0.9.1"]
+[org.nd4j/nd4j-native-platform "1.0.0-alpha"]
 ```
 
 For GPU:
 
 ```clojure
-[org.nd4j/nd4j-cuda-8.0-platform "0.9.1"]
+[org.nd4j/nd4j-cuda-8.0-platform "1.0.0-alpha"]
 ```
 
 Here is a toy example demonstrating classifying the well known iris dataset.
@@ -96,7 +96,10 @@ Run `boot night` to startup nightlight and begin editing the project in a browse
 
 # Contributing
 
-When incrementing the version number of the project, please make sure to update the boot version number, since I use boot to deploy the library. 
+When changing project dependencies or project version number, make sure to update this in the build.boot file.
+The Travis build uses boot, and will not pass the checks unless you update it.
+
+The project.clj file is simple there to make it easier for other developers to contribute.
 
 ## License
 
